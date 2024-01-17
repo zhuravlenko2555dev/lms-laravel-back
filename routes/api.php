@@ -19,7 +19,7 @@ Route::namespace('App\Http\Controllers\Api')->group(function () {
 
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('logout', 'AuthController@logout');
-            Route::get('me');
+            Route::get('me', 'AuthController@me');
         });
     });
 });
