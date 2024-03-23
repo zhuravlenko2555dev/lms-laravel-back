@@ -14,9 +14,15 @@ return new class extends Migration {
             $table->string('name')->index();
             $table->string('publish_date')->nullable();
             $table->text('description')->nullable();
-            $table->string('image_small')->unique()->nullable();
-            $table->string('image_medium')->unique()->nullable();
-            $table->string('image_large')->unique()->nullable();
+
+            $table->foreignIdFor(\App\Models\Publisher::class)
+                ->nullable()
+                ->constrained()
+                ->cascadeOnUpdate();
+
+            $table->string('image_small')->nullable();
+            $table->string('image_medium')->nullable();
+            $table->string('image_large')->nullable();
             $table->timestamps();
         });
     }
