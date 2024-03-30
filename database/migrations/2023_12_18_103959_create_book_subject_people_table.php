@@ -13,7 +13,7 @@ return new class extends Migration {
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
             $table->foreignId('subject_people_id')
-                ->constrained()
+                ->constrained('subject_people')
                 ->cascadeOnUpdate();
 
             $table->unique(['book_id', 'subject_people_id']);
