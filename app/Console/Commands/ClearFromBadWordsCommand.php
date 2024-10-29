@@ -107,7 +107,7 @@ class ClearFromBadWordsCommand extends Command
         }
 
         foreach ($tables as $table) {
-            $this->output->writeln($table . ' --- ' . count($idsToDelete[$table]));
+            $this->output->writeln($table.' --- '.count($idsToDelete[$table]));
         }
 
         foreach ($tables as $table) {

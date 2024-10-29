@@ -44,7 +44,7 @@ class UserSeeder extends Seeder
         $admin->first()->assign(UserRoleEnum::ADMIN->value);
 
         $librarians = User::factory(5)->create();
-        $librarians->each(function (User $librarian, int $i) use ($classes){
+        $librarians->each(function (User $librarian, int $i) use ($classes) {
             $librarian->assign(UserRoleEnum::LIBRARIAN->value);
 
             switch ($i) {

@@ -12,10 +12,6 @@ use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 
 class AuthController extends Controller
 {
-    /**
-     * @param LoginRequest $loginRequest
-     * @return JsonResponse
-     */
     public function login(LoginRequest $loginRequest): JsonResponse
     {
         $loginRequest->authenticate();
@@ -24,10 +20,6 @@ class AuthController extends Controller
         return response()->json([], ResponseAlias::HTTP_NO_CONTENT);
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function logout(Request $request): JsonResponse
     {
         Auth::guard('web')->logout();
@@ -37,10 +29,6 @@ class AuthController extends Controller
         return response()->json([], ResponseAlias::HTTP_NO_CONTENT);
     }
 
-    /**
-     * @param Request $request
-     * @return UserResource
-     */
     public function me(Request $request): UserResource
     {
         return new UserResource($request->user());

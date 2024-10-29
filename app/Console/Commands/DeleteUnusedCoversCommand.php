@@ -27,18 +27,18 @@ class DeleteUnusedCoversCommand extends Command
                 /** @var Book $book */
                 foreach ($books as $book) {
                     $smallName = last(explode('/', $book->image_small));
-                    if (Storage::exists('books_covers/s_selected/' . $smallName)) {
-                        Storage::move('books_covers/s_selected/' . $smallName, 'covers/s/' . $smallName);
+                    if (Storage::exists('books_covers/s_selected/'.$smallName)) {
+                        Storage::move('books_covers/s_selected/'.$smallName, 'covers/s/'.$smallName);
                     }
 
                     $mediumName = last(explode('/', $book->image_medium));
-                    if (Storage::exists('books_covers/m_selected/' . $mediumName)) {
-                        Storage::move('books_covers/m_selected/' . $mediumName, 'covers/m/' . $mediumName);
+                    if (Storage::exists('books_covers/m_selected/'.$mediumName)) {
+                        Storage::move('books_covers/m_selected/'.$mediumName, 'covers/m/'.$mediumName);
                     }
 
                     $largeName = last(explode('/', $book->image_large));
-                    if (Storage::exists('books_covers/l_selected/' . $largeName)) {
-                        Storage::move('books_covers/l_selected/' . $largeName, 'covers/l/' . $largeName);
+                    if (Storage::exists('books_covers/l_selected/'.$largeName)) {
+                        Storage::move('books_covers/l_selected/'.$largeName, 'covers/l/'.$largeName);
                     }
                 }
 
