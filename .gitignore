@@ -18,3 +18,4 @@ auth.json
 *.log
 public/storage
 public/build
+/public/hot
