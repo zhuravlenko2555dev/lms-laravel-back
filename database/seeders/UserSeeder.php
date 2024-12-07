@@ -7,7 +7,6 @@ use App\Enums\UserRoleEnum;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Genre;
-use App\Models\Language;
 use App\Models\Publisher;
 use App\Models\Subject;
 use App\Models\SubjectPeople;
@@ -24,7 +23,6 @@ class UserSeeder extends Seeder
         $classes = [
             Author::class,
             Genre::class,
-            Language::class,
             Publisher::class,
 
             Book::class,

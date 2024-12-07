@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Book extends Model
 {
@@ -19,24 +20,19 @@ class Book extends Model
         'image_large',
     ];
 
-    public function authors(): HasMany
+    public function authors(): BelongsToMany
     {
-        return $this->hasMany(Author::class);
+        return $this->belongsToMany(Author::class);
     }
 
-    public function genres(): HasMany
+    public function genres(): BelongsToMany
     {
-        return $this->hasMany(Genre::class);
+        return $this->belongsToMany(Genre::class);
     }
 
-    public function language(): HasOne
+    public function publisher(): BelongsTo
     {
-        return $this->hasOne(Language::class);
-    }
-
-    public function publisher(): HasOne
-    {
-        return $this->hasOne(Publisher::class);
+        return $this->belongsTo(Publisher::class);
     }
 
     public function subjects(): HasMany

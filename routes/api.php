@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\BookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,13 +15,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::namespace('App\Http\Controllers\Api')->group(function () {
-    Route::prefix('auth')->group(function () {
-        Route::post('login', 'AuthController@login');
+Route::prefix('auth')->group(function () {
+    Route::post('login', [AuthController::class, 'login']);
 
-        Route::middleware('auth:sanctum')->group(function () {
-            Route::post('logout', 'AuthController@logout');
-            Route::get('me', 'AuthController@me');
-        });
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('logout', [AuthController::class, 'logout']);
+        Route::get('me', [AuthController::class, 'me']);
     });
 });
+
+Route::resource('books', BookController::class);

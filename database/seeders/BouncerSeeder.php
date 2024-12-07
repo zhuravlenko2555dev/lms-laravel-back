@@ -7,7 +7,6 @@ use App\Enums\UserRoleEnum;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Genre;
-use App\Models\Language;
 use App\Models\Publisher;
 use App\Models\Subject;
 use App\Models\SubjectPeople;
@@ -23,7 +22,6 @@ class BouncerSeeder extends Seeder
         $classes = [
             Author::class,
             Genre::class,
-            Language::class,
             Publisher::class,
 
             Book::class,
@@ -38,11 +36,11 @@ class BouncerSeeder extends Seeder
 
         foreach ($classes as $class) {
             Bouncer::allow(UserRoleEnum::LIBRARIAN->value)->to([
-                UserAbilityEnum::LIST->value,
+                UserAbilityEnum::VIEW_ANY->value,
                 UserAbilityEnum::VIEW->value,
             ], $class);
             Bouncer::allow(UserRoleEnum::READER->value)->to([
-                UserAbilityEnum::LIST->value,
+                UserAbilityEnum::VIEW_ANY->value,
                 UserAbilityEnum::VIEW->value,
             ], $class);
         }
