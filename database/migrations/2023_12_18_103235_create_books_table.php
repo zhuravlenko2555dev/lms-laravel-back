@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('olid', 15)->unique()->nullable();
             $table->string('isbn', 15)->unique()->nullable();
             $table->string('name')->index();
-            $table->string('publish_date')->nullable();
+            $table->unsignedSmallInteger('publish_year')->nullable();
             $table->text('description')->nullable();
 
             $table->foreignIdFor(\App\Models\Publisher::class)
