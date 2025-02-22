@@ -21,9 +21,6 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnUpdate();
 
-            $table->string('image_small')->nullable();
-            $table->string('image_medium')->nullable();
-            $table->string('image_large')->nullable();
             $table->timestamps();
         });
     }
