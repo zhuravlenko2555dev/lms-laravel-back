@@ -49,6 +49,13 @@ class Media extends Model
         );
     }
 
+    protected function prettyName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->getPrettyName()
+        );
+    }
+
     public function getSizeForHumans(int $precision = 1): string
     {
         $units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
@@ -58,5 +65,14 @@ class Media extends Model
         }
 
         return round($size, $precision).' '.$units[$i];
+    }
+
+    public function getPrettyName(): string
+    {
+        if (filled($this->title)) {
+            return $this->title;
+        }
+
+        return $this->name.'.'.$this->ext;
     }
 }

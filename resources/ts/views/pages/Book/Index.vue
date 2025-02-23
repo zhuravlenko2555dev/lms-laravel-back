@@ -95,7 +95,12 @@ const onSort = (event) => {
                 <Column selectionMode="multiple" :exportable="false" />
                 <Column header="Image">
                     <template #body="slotProps">
-                        <img :src="slotProps.data.image_small" :alt="slotProps.data.image_small" class="rounded" />
+                        <img
+                            :src="slotProps.data.covers[0]?.url"
+                            :alt="slotProps.data.covers[0]?.alt"
+                            class="rounded"
+                            style="width: 48px; height: 72px; object-fit: contain"
+                        />
                     </template>
                 </Column>
                 <Column field="id" header="ID" :sortable="true" />

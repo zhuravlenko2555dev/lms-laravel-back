@@ -35,5 +35,12 @@ export default defineConfig({
                 api: 'modern-compiler'
             }
         }
+    },
+    server: {
+        watch: {
+            ignored: [
+                '**/storage/**'
+            ]
+        }
     }
 });

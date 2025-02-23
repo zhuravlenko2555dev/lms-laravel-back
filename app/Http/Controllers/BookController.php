@@ -16,6 +16,7 @@ class BookController extends Controller
                 'authors',
                 'genres',
                 'publisher',
+                'covers',
             ])
             ->orderBy($request->get('sort', 'id'), $request->get('by', 'desc'));
 
