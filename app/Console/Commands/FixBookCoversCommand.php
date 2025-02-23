@@ -78,7 +78,7 @@ class FixBookCoversCommand extends Command
 
     private function seoText(string $bookName, array $authorNames): string
     {
-        $authors = count($authorNames) === 1 ? 'author' : 'authors';
+        $authors = count($authorNames) === 1 ? 'author ' : 'authors ';
         $authors .= implode(', ', $authorNames);
 
         return sprintf('Book "%s", %s', $bookName, $authors);
