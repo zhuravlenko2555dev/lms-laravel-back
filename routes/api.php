@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\GenreController;
+use App\Http\Controllers\PublisherController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,3 +28,7 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::resource('books', BookController::class);
+Route::get('books-publish-years-range', [BookController::class, 'publishYearsRange']);
+Route::resource('authors', AuthorController::class);
+Route::resource('genres', GenreController::class);
+Route::resource('publishers', PublisherController::class);

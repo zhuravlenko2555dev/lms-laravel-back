@@ -2,6 +2,7 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
+import vueDevTools from 'vite-plugin-vue-devtools';
 import { PrimeVueResolver } from '@primevue/auto-import-resolver';
 import Components from 'unplugin-vue-components/vite';
 
@@ -10,6 +11,9 @@ export default defineConfig({
         laravel({
             input: ['resources/ts/app.ts', 'resources/scss/app.scss'],
             refresh: true,
+        }),
+        vueDevTools({
+            appendTo: "app.ts"
         }),
         vue({
             template: {

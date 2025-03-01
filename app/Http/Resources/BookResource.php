@@ -16,7 +16,7 @@ class BookResource extends JsonResource
             'olid' => $this->olid,
             'isbn' => $this->isbn,
             'name' => $this->name,
-            'publish_date' => $this->publish_date,
+            'publish_year' => $this->publish_year,
             'description' => $this->description,
 
             'authors' => AuthorResource::collection($this->authors),

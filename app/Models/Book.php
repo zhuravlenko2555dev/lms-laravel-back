@@ -14,7 +14,7 @@ class Book extends Model
         'olid',
         'isbn',
         'name',
-        'publish_date',
+        'publish_year',
         'description',
         'image_small',
         'image_medium',
