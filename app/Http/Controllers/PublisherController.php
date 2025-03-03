@@ -13,12 +13,18 @@ class PublisherController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $query = Publisher::query()
+            ->when($request->has('ids'), function (Builder $q) use ($request) {
+                $q->whereIn('id', $request->get('ids'));
+            })
             ->when($request->has('s'), function (Builder $q) use ($request) {
                 $q->where('name', 'like', '%'.$request->get('s').'%');
             })
             ->orderBy($request->get('sort', 'id'), $request->get('by', 'desc'));
 
-        $records = $query->paginate($request->get('per-page', 10));
+        $records = match (true) {
+            $request->has('ids') => $query->get(),
+            default => $query->paginate($request->get('per-page', 10)),
+        };
 
         return PublisherResource::collection($records);
     }
