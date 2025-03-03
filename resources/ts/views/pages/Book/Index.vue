@@ -247,17 +247,17 @@ const searchPublishers = (event) => onFilterSearch('publishers', event.value)
 const processRoute = () => {
     const params = route.query
 
-    if (params.s) s.value = params.s
-    if (params.page) page.value = params.page
-    if (params['per-page']) perPage.value = params['per-page']
-    if (params.sort) sort.value.field = params.sort
-    if (params.by) sort.value.order = params.by === 'asc' ? 1 : -1
+    s.value = params.s ?? ''
+    page.value = params.page ?? 1
+    perPage.value = params['per-page'] ?? 10
+    sort.value.field = params.sort ?? null
+    sort.value.order = params.by === 'asc' ? 1 : -1
 
     if (Object.keys(filters.value).length) {
         for (const k of Object.keys(filters.value)) {
             if (k === 'publish_years') {
-                if (params['filters[min-year]']) filters.value[k].value[0] = +params['filters[min-year]']
-                if (params['filters[max-year]']) filters.value.publish_years.value[1] = +params['filters[max-year]']
+                filters.value.publish_years.value[0] = params['filters[min-year]'] ? +params['filters[min-year]'] : filters.value.publish_years.range[0]
+                filters.value.publish_years.value[1] = params['filters[max-year]'] ? +params['filters[max-year]'] : filters.value.publish_years.range[1]
             } else {
                 if (params[`filters[${k}]`]) {
                     if (Array.isArray(params[`filters[${k}]`])) {
@@ -265,6 +265,8 @@ const processRoute = () => {
                     } else {
                         filters.value[k].value = [params[`filters[${k}]`]]
                     }
+                } else {
+                    filters.value[k].value = null
                 }
             }
         }
