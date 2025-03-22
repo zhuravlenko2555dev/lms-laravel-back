@@ -66,7 +66,7 @@ const onMediaSelect = (event) => {
             </template>
         </Galleria>
 
-        <TransitionGroup name="media-container" tag="div" :class="`grid grid-cols-[repeat(auto-fill,_minmax(10rem,_1fr))] gap-4`">
+        <TransitionGroup name="media-container" tag="div" class="grid grid-cols-[repeat(auto-fill,_minmax(10rem,_1fr))] gap-4">
             <div
                 class="media-item col-span-1 aspect-square relative"
                 v-for="(media, index) of media"

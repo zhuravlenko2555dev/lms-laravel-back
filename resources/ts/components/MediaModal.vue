@@ -3,6 +3,7 @@ import { computed, onMounted, ref, toRefs, watch } from "vue";
 import api from "@plugins/api";
 import { useDebounceFn, useScroll } from "@vueuse/core";
 import MediaGallery from "@/components/MediaGallery.vue";
+import MediaUpload from "@/components/MediaUpload.vue";
 
 const { exceptIds } = defineProps(['exceptIds'])
 const emit = defineEmits(['add-media', 'close', 'maximize'])
@@ -80,14 +81,15 @@ const loadMore = () => {
 const selectedMediaIds = ref([])
 const selectedMedia = ref([])
 
-watch(selectedMediaIds, (newV, oldV) => {
-    const idsToRemove = oldV.filter((v) => !newV.includes(v))
-    const idsToAdd = newV.filter((v) => !oldV.includes(v))
+watch(selectedMediaIds, () => {
+    const oldIds = selectedMedia.value.map((v) => v.id)
+    const idsToRemove = oldIds.filter((v) => !selectedMediaIds.value.includes(v))
+    const idsToAdd = selectedMediaIds.value.filter((v) => !oldIds.includes(v))
 
     let media = selectedMedia.value.filter((v) => !idsToRemove.includes(v.id))
     media.push(...records.value.filter((v) => idsToAdd.includes(v.id)))
     selectedMedia.value = media
-})
+}, { deep: true })
 
 const mediaGalleryWrapper = ref()
 const { arrivedState, measure } = useScroll(mediaGalleryWrapper)
@@ -111,6 +113,12 @@ const onMaximize = () => {
     emit('maximize')
     remeasure()
 }
+
+const mediaUploadVisible = ref(false)
+const onUploaded = (media) => {
+    records.value.unshift(media)
+    selectedMediaIds.value.push(media.id)
+}
 </script>
 
 <template>
@@ -130,6 +138,7 @@ const onMaximize = () => {
             </template>
 
             <template #end>
+                <Button icon="pi pi-upload" rounded severity="secondary" @click="mediaUploadVisible = true" />
                 <Button icon="pi pi-window-minimize" rounded severity="secondary" @click="onMaximize" />
             </template>
         </Toolbar>
@@ -175,6 +184,21 @@ const onMaximize = () => {
                 />
             </div>
         </div>
+
+        <Dialog
+            class="overflow-auto"
+            v-model:visible="mediaUploadVisible"
+            :style="{ width: '40vw' }"
+            :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+            :block-scroll="true"
+        >
+            <template #container="{ closeCallback }">
+                <MediaUpload
+                    @uploaded="onUploaded"
+                    @close="closeCallback"
+                />
+            </template>
+        </Dialog>
     </div>
 </template>
 

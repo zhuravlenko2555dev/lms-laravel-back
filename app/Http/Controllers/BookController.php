@@ -86,7 +86,7 @@ class BookController extends Controller
         ]);
     }
 
-    public function store(BookRequest $request)
+    public function store(BookRequest $request): JsonResource
     {
         $book = Book::create($request->all());
 
