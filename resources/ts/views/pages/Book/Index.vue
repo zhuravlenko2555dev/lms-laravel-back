@@ -3,10 +3,12 @@ import { onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "@plugins/api";
 import { useDebounceFn } from "@vueuse/core";
+import { useToast } from "primevue/usetoast";
+import { useConfirm } from "primevue/useconfirm";
 
-const dt = ref();
+const dt = ref()
 const loading = ref(true)
-const records = ref();
+const records = ref()
 const dtPageReport = ref({
     first: 0,
     last: 0,
@@ -19,12 +21,14 @@ const sort = ref({ field: null, order: null })
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
+const confirm = useConfirm()
 
 onMounted(() => {
     processRoute()
     loadRecords()
     preloadFilters()
-});
+})
 
 watch(
     () => route.query,
@@ -80,6 +84,37 @@ const loadRecords = () => {
         })
         .catch(() => {
             loading.value = false
+        })
+}
+const confirmDeletion = (id) => {
+    confirm.require({
+        message: 'Are you sure you want to delete this book?',
+        header: 'Confirmation',
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: {
+            label: 'Cancel',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: 'Delete',
+            severity: 'danger'
+        },
+        accept: () => {
+            deleteRecord(id)
+        }
+    })
+}
+const deleteRecord = (id) => {
+    let q = `/api/books/${id}`
+
+    api(q, { method: 'delete' })
+        .then(res => {
+            loadRecords()
+            toast.add({ severity: 'success', summary: 'Success', detail: 'Book deleted!', life: 3000 })
+        })
+        .catch((err) => {
+            toast.add({ severity: 'error', summary: 'Error', detail: 'Something went wrong!', life: 3000 })
         })
 }
 
@@ -332,6 +367,10 @@ const pushToHistory = () => {
                 <template #header>
                     <div class="flex justify-between">
                         <div class="flex gap-2">
+                            <RouterLink class="mr-2" :to="{ name: 'books.create' }">
+                                <Button icon="pi pi-plus" outlined rounded />
+                            </RouterLink>
+
                             <Button
                                 v-if="Object.keys(filterChips).length"
                                 type="button"
@@ -493,7 +532,7 @@ const pushToHistory = () => {
                     :filter-menu-style="{ width: '16rem' }"
                 >
                     <template #body="slotProps">
-                        <Tag :value="slotProps.data.publisher.name" />
+                        <Tag v-if="slotProps.data.publisher" :value="slotProps.data.publisher.name" />
                     </template>
                     <template #filter="{ filterModel }">
                         <MultiSelect
@@ -506,6 +545,20 @@ const pushToHistory = () => {
                             :auto-filter-focus="true"
                             :loading="filterModel.loading"
                             placeholder="Search..."
+                        />
+                    </template>
+                </Column>
+                <Column style="min-width: 12rem">
+                    <template #body="slotProps">
+                        <RouterLink class="mr-2" :to="{ name: 'books.edit', params: { id:  slotProps.data.id} }">
+                            <Button icon="pi pi-pencil" outlined rounded />
+                        </RouterLink>
+                        <Button
+                            icon="pi pi-trash"
+                            outlined
+                            rounded
+                            severity="danger"
+                            @click="confirmDeletion(slotProps.data.id)"
                         />
                     </template>
                 </Column>

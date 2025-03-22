@@ -1,9 +1,11 @@
-import {$fetch, type FetchContext, type FetchOptions} from "ofetch"
+import { $fetch, type FetchContext, type FetchOptions } from "ofetch"
+import { useCookies } from '@vueuse/integrations/useCookies'
 
-const BASE_URL = '/api'
 const CSRF_COOKIE = 'XSRF-TOKEN'
 const CSRF_HEADER = 'X-XSRF-TOKEN'
 const ACCEPT_HEADER = 'Accept'
+
+const { get: getCookie } = useCookies([CSRF_COOKIE])
 
 let options: FetchOptions = {}
 let headers: any = {}
@@ -18,7 +20,20 @@ const api = $fetch.create({
     async onRequest(context: FetchContext): Promise<void> {
         let headers: any = {}
 
-        //TODO token for post request
+        let token = getCookie(CSRF_COOKIE)
+        if (
+            !token
+            && ["post", "put", "patch", "delete"].includes(
+                context.options?.method?.toLowerCase() ?? ""
+            )
+        ) {
+            await $fetch('/sanctum/csrf-cookie')
+            token = getCookie(CSRF_COOKIE)
+        }
+
+        if (token) {
+            headers[CSRF_HEADER] = token
+        }
 
         context.options.headers = {
             ...context.options.headers,

@@ -1,2 +1,8 @@
 @use "styles";
 @use "tailwind";
+
+.required:after {
+    content: "*";
+    color: var(--p-red-500);
+    margin-left: 4px;
+}

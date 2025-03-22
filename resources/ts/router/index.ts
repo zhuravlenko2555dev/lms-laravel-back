@@ -14,7 +14,34 @@ const router = createRouter({
                         {
                             name: 'books',
                             path: '',
-                            component: () => import('@/views/pages/Book/Index.vue')
+                            component: () => import('@/views/pages/Book/Index.vue'),
+                            meta: {
+                                breadcrumbs: [
+                                    { label: 'Books' },
+                                ]
+                            }
+                        },
+                        {
+                            name: 'books.create',
+                            path: 'create',
+                            component: () => import('@/views/pages/Book/Record.vue'),
+                            meta: {
+                                breadcrumbs: [
+                                    { label: 'Books', to: '/admin/books' },
+                                    { label: 'Create' },
+                                ]
+                            }
+                        },
+                        {
+                            name: 'books.edit',
+                            path: ':id',
+                            component: () => import('@/views/pages/Book/Record.vue'),
+                            meta: {
+                                breadcrumbs: [
+                                    { label: 'Books', to: '/admin/books' },
+                                    { label: 'Edit' },
+                                ]
+                            }
                         }
                     ]
                 }

@@ -4,7 +4,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PublisherController;
+use App\Http\Controllers\SubjectController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,3 +34,5 @@ Route::get('books-publish-years-range', [BookController::class, 'publishYearsRan
 Route::resource('authors', AuthorController::class);
 Route::resource('genres', GenreController::class);
 Route::resource('publishers', PublisherController::class);
+Route::resource('subjects', SubjectController::class);
+Route::resource('media', MediaController::class);

@@ -29,7 +29,7 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
                     </g>
                 </svg>
 
-                <span>SAKAI</span>
+                <span>LMS</span>
             </router-link>
         </div>
 

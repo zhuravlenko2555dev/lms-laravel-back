@@ -10,8 +10,10 @@ return new class extends Migration
     {
         Schema::create('subjects', function (Blueprint $table) {
             $table->id();
-            $table->string('alias')->unique();
-            $table->string('name')->unique();
+            $table->unsignedTinyInteger('type');
+            $table->string('name')->index();
+
+            $table->unique(['type', 'name']);
         });
     }
 

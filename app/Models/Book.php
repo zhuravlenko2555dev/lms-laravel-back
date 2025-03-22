@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Book extends Model
@@ -16,9 +15,7 @@ class Book extends Model
         'name',
         'publish_year',
         'description',
-        'image_small',
-        'image_medium',
-        'image_large',
+        'publisher_id',
     ];
 
     public function authors(): BelongsToMany
@@ -36,24 +33,9 @@ class Book extends Model
         return $this->belongsTo(Publisher::class);
     }
 
-    public function subjects(): HasMany
+    public function subjects(): BelongsToMany
     {
-        return $this->hasMany(Subject::class);
-    }
-
-    public function subjectPlaces(): HasMany
-    {
-        return $this->hasMany(SubjectPlace::class);
-    }
-
-    public function subjectPeople(): HasMany
-    {
-        return $this->hasMany(SubjectPeople::class);
-    }
-
-    public function subjectTimes(): HasMany
-    {
-        return $this->hasMany(SubjectTime::class);
+        return $this->belongsToMany(Subject::class);
     }
 
     public function covers(): MorphToMany

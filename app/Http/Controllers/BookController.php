@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 
 class BookController extends Controller
 {
@@ -83,19 +86,52 @@ class BookController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(BookRequest $request)
     {
+        $book = Book::create($request->all());
+
+        $book->authors()->sync($request->get('author_ids'));
+        $book->genres()->sync($request->get('genre_ids'));
+        $book->subjects()->sync($request->get('subject_ids'));
+        $book->covers()->sync(collect($request->get('cover_ids'))
+            ->mapWithKeys(function ($id, $i) {
+                return [$id => ['order' => ($i + 1)]];
+            }));
+
+        return BookResource::make($book);
     }
 
-    public function show(Book $book)
+    public function show(Book $book): JsonResource
     {
+        $book->load([
+            'authors',
+            'genres',
+            'publisher',
+            'covers',
+        ]);
+
+        return BookResource::make($book);
     }
 
-    public function update(Request $request, Book $book)
+    public function update(BookRequest $request, Book $book): JsonResource
     {
+        $book->update($request->all());
+
+        $book->authors()->sync($request->get('author_ids'));
+        $book->genres()->sync($request->get('genre_ids'));
+        $book->subjects()->sync($request->get('subject_ids'));
+        $book->covers()->sync(collect($request->get('cover_ids'))
+            ->mapWithKeys(function ($id, $i) {
+                return [$id => ['order' => ($i + 1)]];
+            }));
+
+        return BookResource::make($book);
     }
 
-    public function destroy(Book $book)
+    public function destroy(Book $book): JsonResponse
     {
+        $book->delete();
+
+        return response()->json(status: ResponseAlias::HTTP_NO_CONTENT);
     }
 }

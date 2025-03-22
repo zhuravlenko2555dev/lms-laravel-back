@@ -22,11 +22,12 @@ class BookResource extends JsonResource
             'authors' => AuthorResource::collection($this->authors),
             'genres' => GenreResource::collection($this->genres),
             'publisher' => PublisherResource::make($this->publisher),
+            'subjects' => SubjectResource::collection($this->subjects),
 
             'covers' => MediaResource::collection($this->covers),
 
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
     }
 }
