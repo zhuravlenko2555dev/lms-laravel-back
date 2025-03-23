@@ -283,8 +283,8 @@ const processRoute = () => {
     const params = route.query
 
     s.value = params.s ?? ''
-    page.value = params.page ?? 1
-    perPage.value = params['per-page'] ?? 10
+    page.value = params.page ? +params.page : 1
+    perPage.value = params['per-page'] ? +params['per-page'] : 10
     sort.value.field = params.sort ?? null
     sort.value.order = params.by === 'asc' ? 1 : -1
 
@@ -349,7 +349,7 @@ const pushToHistory = () => {
                 :loading="loading"
                 removable-sort
                 paginator
-                :rows="perPage"
+                v-model:rows="perPage"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 :rowsPerPageOptions="[10, 25, 50, 100]"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} books"

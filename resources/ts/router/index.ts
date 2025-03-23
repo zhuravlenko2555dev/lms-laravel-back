@@ -44,10 +44,25 @@ const router = createRouter({
                             }
                         }
                     ]
+                },
+                {
+                    path: 'media',
+                    children: [
+                        {
+                            name: 'media',
+                            path: '',
+                            component: () => import('@/views/pages/Media/Index.vue'),
+                            meta: {
+                                breadcrumbs: [
+                                    { label: 'Media' },
+                                ]
+                            }
+                        }
+                    ]
                 }
             ]
         }
     ]
-});
+})
 
 export default router;

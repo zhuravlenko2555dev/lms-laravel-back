@@ -35,4 +35,5 @@ Route::resource('authors', AuthorController::class);
 Route::resource('genres', GenreController::class);
 Route::resource('publishers', PublisherController::class);
 Route::resource('subjects', SubjectController::class);
-Route::resource('media', MediaController::class);
+Route::resource('media', MediaController::class)
+    ->parameters(['media' => 'media']);

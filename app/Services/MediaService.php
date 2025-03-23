@@ -50,4 +50,22 @@ class MediaService
 
         return $media;
     }
+
+    public function deleteMedia(Media $media): void
+    {
+        //TODO check if media is used before delete
+        $extension = 'webp';
+
+        $files = [
+            $media->path,
+        ];
+        if (! empty($media->sizes)) {
+            foreach ($media->sizes as $size) {
+                $files[] = "{$media->directory}/{$size}/{$media->name}.{$extension}";
+            }
+        }
+
+        Storage::delete($files);
+        $media->delete();
+    }
 }

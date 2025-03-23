@@ -2,10 +2,12 @@
 import { computed, ref } from "vue";
 import MediaGallery from "@/components/MediaGallery.vue";
 import MediaModal from "@/components/MediaModal.vue";
+import Record from "@/views/pages/Media/Record.vue";
 
 const { modelValue } = defineProps(['modelValue'])
 const emit = defineEmits(['update:modelValue'])
 
+const recordModalVisible = ref(false)
 const menuOnIndex = ref(0)
 const mediaMenuOptions = ref([
     {
@@ -13,7 +15,7 @@ const mediaMenuOptions = ref([
         label: 'Edit',
         icon: 'pi pi-pencil',
         command: () => {
-            //TODO link to edit page
+            recordModalVisible.value = true
         }
     },
     {
@@ -115,6 +117,7 @@ const addMedia = (media) => {
     <MediaGallery
         :media="modelValue"
         v-model:menu-on-index="menuOnIndex"
+        :selectable="true"
         v-model:selected-media-ids="selectedMediaIds"
         :media-menu-options="mediaMenuOptions"
     />
@@ -134,5 +137,16 @@ const addMedia = (media) => {
                 @maximize="maximizeCallback"
             />
         </template>
+    </Dialog>
+
+    <Dialog
+        v-if="modelValue?.length"
+        v-model:visible="recordModalVisible"
+        :style="{ width: '40vw' }"
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+        :block-scroll="true"
+        :header="`Media #${modelValue[menuOnIndex].id}`"
+    >
+        <Record :id="modelValue[menuOnIndex].id" />
     </Dialog>
 </template>

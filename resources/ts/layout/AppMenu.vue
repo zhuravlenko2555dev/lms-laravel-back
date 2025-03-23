@@ -11,10 +11,11 @@ const model = ref([
     {
         label: 'Resources',
         items: [
-            { label: 'Books', icon: 'pi pi-fw pi-book', to: '/admin/books' }
+            { label: 'Books', icon: 'pi pi-fw pi-book', to: '/admin/books' },
+            { label: 'Media', icon: 'pi pi-fw pi-image', to: '/admin/media' },
         ]
     },
-]);
+])
 </script>
 
 <template>

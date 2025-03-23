@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import api from "@plugins/api";
-import { useToast } from "primevue/usetoast";
 import { usePrimeVue } from "primevue/config";
 
 const emit = defineEmits(['uploaded', 'close'])
@@ -10,7 +9,6 @@ const files = ref([])
 const uploadState = ref({})
 const totalSize = ref(0)
 
-const toast = useToast()
 const { config } = usePrimeVue()
 
 const onFilesChange = (event = null) => {

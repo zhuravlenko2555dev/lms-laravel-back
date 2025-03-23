@@ -146,6 +146,7 @@ const onUploaded = (media) => {
         <div ref="mediaGalleryWrapper" class="flex flex-col gap-4 overflow-auto overflow-x-hidden">
             <MediaGallery
                 :media="records"
+                :selectable="true"
                 v-model:selected-media-ids="selectedMediaIds"
             />
 

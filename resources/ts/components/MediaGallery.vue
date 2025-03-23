@@ -5,11 +5,13 @@ const {
     media,
     menuOnIndex,
     mediaMenuOptions = [],
+    selectable = false,
     selectedMediaIds = [],
 } = defineProps([
     'media',
     'menuOnIndex',
     'mediaMenuOptions',
+    'selectable',
     'selectedMediaIds',
 ])
 const emit = defineEmits([
@@ -81,23 +83,28 @@ const onMediaSelect = (event) => {
                 />
 
                 <div class="absolute left-0 top-0 w-full flex items-center justify-between">
-                    <Checkbox
-                        class="ml-3 items-center"
-                        style="height: 2.5rem"
-                        :model-value="selectedMediaIds"
-                        @change="onMediaSelect"
-                        :value="media.id"
-                    />
+                    <div>
+                        <Checkbox
+                            v-show="selectable"
+                            class="ml-3 items-center"
+                            style="height: 2.5rem"
+                            :model-value="selectedMediaIds"
+                            @change="onMediaSelect"
+                            :value="media.id"
+                        />
+                    </div>
 
-                    <Button
-                        v-show="mediaMenuVisible"
-                        icon="pi pi-ellipsis-v"
-                        aria-haspopup="true"
-                        aria-controls="mediaOverlayMenu"
-                        rounded
-                        severity="secondary"
-                        @click="onMediaMenuToggle($event, index)"
-                    />
+                    <div>
+                        <Button
+                            v-show="mediaMenuVisible"
+                            icon="pi pi-ellipsis-v"
+                            aria-haspopup="true"
+                            aria-controls="mediaOverlayMenu"
+                            rounded
+                            severity="secondary"
+                            @click="onMediaMenuToggle($event, index)"
+                        />
+                    </div>
                 </div>
             </div>
 
