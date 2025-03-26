@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import {onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "@plugins/api";
 import { useDebounceFn } from "@vueuse/core";
@@ -67,6 +67,15 @@ onMounted(() => {
 
     if (isEditing.value) loadRecord()
 })
+
+watch(
+    () => route.query,
+    () => {
+        isEditing.value = !!route.params.id
+
+        if (isEditing.value) loadRecord()
+    }
+)
 
 const loadRecord = () => {
     loading.value = true

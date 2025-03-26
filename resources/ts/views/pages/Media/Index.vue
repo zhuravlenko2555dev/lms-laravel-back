@@ -123,8 +123,8 @@ const mediaMenuOptions = ref([
         }
     },
     {
-        key: 'media-remove',
-        label: 'Remove',
+        key: 'media-delete',
+        label: 'Delete',
         icon: 'pi pi-trash',
         style: 'color: var(--p-red-500)',
         command: () => {

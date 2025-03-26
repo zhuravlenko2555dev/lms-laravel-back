@@ -24,8 +24,10 @@ const mediaMenuOptions = ref([
         icon: 'pi pi-trash',
         style: 'color: var(--p-red-500)',
         command: () => {
+            const index = menuOnIndex.value
+            menuOnIndex.value = 0
             let newModelValue = modelValue
-            newModelValue.splice(menuOnIndex.value, 1)
+            newModelValue.splice(index, 1)
             emit('update:modelValue', newModelValue)
         }
     }
