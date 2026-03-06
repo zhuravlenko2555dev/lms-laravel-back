@@ -1,35 +1,42 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, toRefs, watch } from "vue";
-import api from "@plugins/api";
-import { useDebounceFn, useScroll } from "@vueuse/core";
-import MediaGallery from "@/components/MediaGallery.vue";
-import MediaUpload from "@/components/MediaUpload.vue";
+import { computed, onMounted, ref, toRefs, watch } from 'vue'
+import { useDebounceFn, useScroll } from '@vueuse/core'
+import MediaGallery from '@/components/MediaGallery.vue'
+import MediaUpload from '@/components/MediaUpload.vue'
+import api from '@/plugins/api'
+import { Media, QueryParams, PageReport, ResourceCollectionResponse } from '@/types'
 
-const { exceptIds } = defineProps(['exceptIds'])
-const emit = defineEmits(['add-media', 'close', 'maximize'])
+const { exceptIds } = defineProps<{
+    exceptIds: number[]
+}>()
+const emit = defineEmits<{
+    'add-media': [Media[]]
+    'close': []
+    'maximize': [event: Event]
+}>()
 
-const loading = ref(true)
-const records = ref()
-const pageReport = ref({
+const loading = ref<boolean>(true)
+const records = ref<Media[]>()
+const pageReport = ref<PageReport>({
     first: 0,
     last: 0,
     totalRecords: 0,
 })
-const append = ref(false)
-const s = ref('')
-const page = ref(1)
-const perPage = ref(25)
+const append = ref<boolean>(false)
+const s = ref<string>('')
+const page = ref<number>(1)
+const perPage = ref<number>(25)
 
 onMounted(() => {
     loadRecords()
 })
 
-const loadRecords = () => {
+const loadRecords = (): void => {
     loading.value = true
 
     let q = '/api/media?'
 
-    let params: any = {}
+    const params: QueryParams = {}
     if (exceptIds) params['except-ids'] = exceptIds
     if (s.value) params['s'] = s.value
     if (page.value > 1) params.page = page.value
@@ -37,14 +44,14 @@ const loadRecords = () => {
 
     for (const [k, v] of Object.entries(params)) {
         if (Array.isArray(v)) {
-            q += v.map((_v) => `${k}[]=${_v}`).join('&')
+            q += v.map(_v => `${k}[]=${_v}`).join('&')
         } else {
             q += `&${k}=${v}`
         }
     }
 
     api(q)
-        .then(res => {
+        .then((res: ResourceCollectionResponse<Media>) => {
             if (append.value) {
                 records.value.push(...res.data)
             } else {
@@ -71,51 +78,51 @@ const onSearch = useDebounceFn((event) => {
 
     loadRecords()
 }, 500)
-const loadMore = () => {
+const loadMore = (): void => {
     page.value++
     append.value = true
 
     loadRecords()
 }
 
-const selectedMediaIds = ref([])
-const selectedMedia = ref([])
+const selectedMediaIds = ref<number[]>([])
+const selectedMedia = ref<Media[]>([])
 
 watch(selectedMediaIds, () => {
-    const oldIds = selectedMedia.value.map((v) => v.id)
-    const idsToRemove = oldIds.filter((v) => !selectedMediaIds.value.includes(v))
-    const idsToAdd = selectedMediaIds.value.filter((v) => !oldIds.includes(v))
+    const oldIds = selectedMedia.value.map(v => v.id)
+    const idsToRemove = oldIds.filter(v => !selectedMediaIds.value.includes(v))
+    const idsToAdd = selectedMediaIds.value.filter(v => !oldIds.includes(v))
 
-    let media = selectedMedia.value.filter((v) => !idsToRemove.includes(v.id))
-    media.push(...records.value.filter((v) => idsToAdd.includes(v.id)))
+    const media = selectedMedia.value.filter(v => !idsToRemove.includes(v.id))
+    media.push(...records.value.filter(v => idsToAdd.includes(v.id)))
     selectedMedia.value = media
 }, { deep: true })
 
-const mediaGalleryWrapper = ref()
+const mediaGalleryWrapper = ref<InstanceType<typeof HTMLElement>>()
 const { arrivedState, measure } = useScroll(mediaGalleryWrapper)
 const { bottom } = toRefs(arrivedState)
 
-const remeasure = () => {
+const remeasure = (): void => {
     setTimeout(() => measure(), 50)
 }
-const loadMoreVisible = computed(() => {
+const loadMoreVisible = computed<boolean>(() => {
     if (!records.value?.length) return false
     if (pageReport.value.last === pageReport.value.totalRecords) return false
 
-    return bottom.value;
+    return bottom.value
 })
 
-const onAdd = () => {
+const onAdd = (): void => {
     emit('add-media', selectedMedia.value)
     emit('close')
 }
-const onMaximize = () => {
-    emit('maximize')
+const onMaximize = (event: Event): void => {
+    emit('maximize', event)
     remeasure()
 }
 
-const mediaUploadVisible = ref(false)
-const onUploaded = (media) => {
+const mediaUploadVisible = ref<boolean>(false)
+const onUploaded = (media: Media): void => {
     records.value.unshift(media)
     selectedMediaIds.value.push(media.id)
 }
@@ -133,7 +140,7 @@ const onUploaded = (media) => {
                     <InputIcon>
                         <i class="pi pi-search" />
                     </InputIcon>
-                    <InputText type="search" v-model="s" @input="onSearch" placeholder="Search..." />
+                    <InputText v-model="s" type="search" placeholder="Search..." @input="onSearch" />
                 </IconField>
             </template>
 
@@ -145,9 +152,9 @@ const onUploaded = (media) => {
 
         <div ref="mediaGalleryWrapper" class="flex flex-col gap-4 overflow-auto overflow-x-hidden">
             <MediaGallery
+                v-model:selected-media-ids="selectedMediaIds"
                 :media="records"
                 :selectable="true"
-                v-model:selected-media-ids="selectedMediaIds"
             />
 
             <div class="absolute left-0 bottom-24 w-full flex justify-center">
@@ -187,8 +194,8 @@ const onUploaded = (media) => {
         </div>
 
         <Dialog
-            class="overflow-auto"
             v-model:visible="mediaUploadVisible"
+            class="overflow-auto"
             :style="{ width: '40vw' }"
             :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
             :block-scroll="true"

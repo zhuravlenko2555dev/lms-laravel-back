@@ -1,22 +1,29 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import MediaGallery from "@/components/MediaGallery.vue";
-import MediaModal from "@/components/MediaModal.vue";
-import Record from "@/views/pages/Media/Record.vue";
+import { computed, ref } from 'vue'
+import Record from '@/views/pages/Media/Record.vue'
+import MediaGallery from '@/components/MediaGallery.vue'
+import MediaModal from '@/components/MediaModal.vue'
+import Menu from 'primevue/menu'
+import { MenuItem } from 'primevue/menuitem'
+import { Media } from '@/types'
 
-const { modelValue } = defineProps(['modelValue'])
-const emit = defineEmits(['update:modelValue'])
+const { modelValue } = defineProps<{
+    modelValue: Media[]
+}>()
+const emit = defineEmits<{
+    'update:modelValue': [value: Media[]]
+}>()
 
-const recordModalVisible = ref(false)
-const menuOnIndex = ref(0)
-const mediaMenuOptions = ref([
+const recordModalVisible = ref<boolean>(false)
+const menuOnIndex = ref<number>(0)
+const mediaMenuOptions = ref<MenuItem[]>([
     {
         key: 'media-edit',
         label: 'Edit',
         icon: 'pi pi-pencil',
         command: () => {
             recordModalVisible.value = true
-        }
+        },
     },
     {
         key: 'media-remove',
@@ -26,26 +33,26 @@ const mediaMenuOptions = ref([
         command: () => {
             const index = menuOnIndex.value
             menuOnIndex.value = 0
-            let newModelValue = modelValue
+            const newModelValue = modelValue
             newModelValue.splice(index, 1)
             emit('update:modelValue', newModelValue)
-        }
-    }
+        },
+    },
 ])
 
-const selectedMediaIds = ref([])
-const allMediaSelected = computed(() => {
+const selectedMediaIds = ref<number[]>([])
+const allMediaSelected = computed<boolean>(() => {
     return selectedMediaIds.value.length === modelValue?.length
 })
-const partialMediaSelected = computed(() => {
+const partialMediaSelected = computed<boolean>(() => {
     return !!(selectedMediaIds.value.length && selectedMediaIds.value.length < modelValue?.length)
 })
-const onSelectAllMedia = () => {
-    selectedMediaIds.value = allMediaSelected.value ? [] : [...modelValue.map((v) => v.id)]
+const onSelectAllMedia = (): void => {
+    selectedMediaIds.value = allMediaSelected.value ? [] : [...modelValue.map(v => v.id)]
 }
 
-const bulkMenu = ref()
-const bulkMenuOptions = ref([
+const bulkMenu = ref<InstanceType<typeof Menu>>()
+const bulkMenuOptions = ref<MenuItem[]>([
     {
         key: 'bulk-remove',
         label: 'Remove',
@@ -53,16 +60,16 @@ const bulkMenuOptions = ref([
         style: 'color: var(--p-red-500)',
         command: () => {
             let newModelValue = modelValue
-            newModelValue = newModelValue.filter((v) => !selectedMediaIds.value.includes(v.id))
+            newModelValue = newModelValue.filter(v => !selectedMediaIds.value.includes(v.id))
             selectedMediaIds.value = []
             emit('update:modelValue', newModelValue)
-        }
-    }
+        },
+    },
 ])
 
-const mediaModalVisible = ref(false)
-const addMedia = (media) => {
-    let newModelValue = modelValue
+const mediaModalVisible = ref<boolean>(false)
+const addMedia = (media: Media[]): void => {
+    const newModelValue = modelValue
     newModelValue.push(...media)
     emit('update:modelValue', newModelValue)
 }
@@ -72,8 +79,8 @@ const addMedia = (media) => {
     <Toolbar class="mb-4">
         <template #start>
             <Checkbox
-                class="mr-3"
                 v-if="modelValue?.length"
+                class="mr-3"
                 :model-value="allMediaSelected"
                 :binary="true"
                 :indeterminate="partialMediaSelected"
@@ -81,8 +88,8 @@ const addMedia = (media) => {
             />
 
             <Button
-                class="mr-3 text-nowrap"
                 v-if="selectedMediaIds.length"
+                class="mr-3 text-nowrap"
                 :label="`Selected (${selectedMediaIds.length})`"
                 icon="pi pi-ellipsis-v"
                 aria-haspopup="true"
@@ -91,8 +98,8 @@ const addMedia = (media) => {
                 @click="bulkMenu.toggle($event)"
             />
             <Menu
-                ref="bulkMenu"
                 id="bulkOverlayMenu"
+                ref="bulkMenu"
                 :model="bulkMenuOptions"
                 :popup="true"
                 :dt="{
@@ -117,10 +124,10 @@ const addMedia = (media) => {
     </Toolbar>
 
     <MediaGallery
-        :media="modelValue"
         v-model:menu-on-index="menuOnIndex"
-        :selectable="true"
         v-model:selected-media-ids="selectedMediaIds"
+        :media="modelValue"
+        :selectable="true"
         :media-menu-options="mediaMenuOptions"
     />
 

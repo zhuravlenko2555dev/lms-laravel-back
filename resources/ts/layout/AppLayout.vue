@@ -1,67 +1,70 @@
-<script setup>
-import { useLayout } from '@/layout/composables/layout';
-import { computed, ref, watch } from 'vue';
-import AppSidebar from './AppSidebar.vue';
-import AppTopbar from './AppTopbar.vue';
-import { useRoute } from "vue-router";
+<script setup lang="ts">
+import { computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useLayout } from '@/layout/composables/layout'
+import AppSidebar from './AppSidebar.vue'
+import AppTopbar from './AppTopbar.vue'
+import type { Breadcrumb } from '@/types/ui'
 
-const { layoutConfig, layoutState, isSidebarActive, resetMenu } = useLayout();
+const { layoutConfig, layoutState, isSidebarActive, resetMenu } = useLayout()
 const route = useRoute()
 
-const outsideClickListener = ref(null);
+let outsideClickListener: ((event: MouseEvent) => void) | null = null
 
 watch(isSidebarActive, (newVal) => {
     if (newVal) {
-        bindOutsideClickListener();
+        bindOutsideClickListener()
     } else {
-        unbindOutsideClickListener();
+        unbindOutsideClickListener()
     }
-});
+})
 
-const containerClass = computed(() => {
+const containerClass = computed<Record<string, boolean>>(() => {
     return {
         'layout-overlay': layoutConfig.menuMode === 'overlay',
         'layout-static': layoutConfig.menuMode === 'static',
         'layout-static-inactive': layoutState.staticMenuDesktopInactive && layoutConfig.menuMode === 'static',
-        'layout-overlay-active': layoutState.overlayMenuActive,
-        'layout-mobile-active': layoutState.staticMenuMobileActive
-    };
-});
-
-const breadcrumbs = computed(() => {
-    return route?.meta?.breadcrumbs ?? []
+        'layout-overlay-active': !!layoutState.overlayMenuActive,
+        'layout-mobile-active': !!layoutState.staticMenuMobileActive,
+    }
 })
 
-function bindOutsideClickListener() {
-    if (!outsideClickListener.value) {
-        outsideClickListener.value = (event) => {
+const breadcrumbs = computed<Breadcrumb[]>(() => {
+    return (route.meta?.breadcrumbs as Breadcrumb[]) ?? []
+})
+
+function bindOutsideClickListener(): void {
+    if (!outsideClickListener) {
+        outsideClickListener = (event: MouseEvent) => {
             if (isOutsideClicked(event)) {
-                resetMenu();
+                resetMenu()
             }
-        };
-        document.addEventListener('click', outsideClickListener.value);
+        }
+        document.addEventListener('click', outsideClickListener)
     }
 }
 
-function unbindOutsideClickListener() {
-    if (outsideClickListener.value) {
-        document.removeEventListener('click', outsideClickListener);
-        outsideClickListener.value = null;
+function unbindOutsideClickListener(): void {
+    if (outsideClickListener) {
+        document.removeEventListener('click', outsideClickListener)
+        outsideClickListener = null
     }
 }
 
-function isOutsideClicked(event) {
-    const sidebarEl = document.querySelector('.layout-sidebar');
-    const topbarEl = document.querySelector('.layout-menu-button');
+function isOutsideClicked(event: Event): boolean {
+    const sidebarEl = document.querySelector('.layout-sidebar')
+    const topbarEl = document.querySelector('.layout-menu-button')
 
-    return !(sidebarEl.isSameNode(event.target) || sidebarEl.contains(event.target) || topbarEl.isSameNode(event.target) || topbarEl.contains(event.target));
+    const isTarget = (el: Element | null) => el && (el.isSameNode(event.target as Node) || el.contains(event.target as Node))
+
+    return !(isTarget(sidebarEl) || isTarget(topbarEl))
 }
 </script>
 
 <template>
     <div class="layout-wrapper" :class="containerClass">
-        <app-topbar></app-topbar>
-        <app-sidebar></app-sidebar>
+        <app-topbar />
+        <app-sidebar />
         <div class="layout-main-container">
             <div class="layout-main">
                 <Breadcrumb v-if="breadcrumbs.length" :home="{ icon: 'pi pi-home', to: '/admin' }" :model="breadcrumbs">
@@ -77,10 +80,10 @@ function isOutsideClicked(event) {
                         </a>
                     </template>
                 </Breadcrumb>
-                <router-view></router-view>
+                <router-view />
             </div>
         </div>
-        <div class="layout-mask animate-fadein"></div>
+        <div class="layout-mask animate-fadein" />
     </div>
     <Toast />
     <ConfirmDialog />

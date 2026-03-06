@@ -1,33 +1,39 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import api from "@plugins/api";
-import { usePrimeVue } from "primevue/config";
+import { ref } from 'vue'
+import { usePrimeVue } from 'primevue/config'
+import api from '@/plugins/api'
+import { Media, ResourceResponse } from '@/types'
 
-const emit = defineEmits(['uploaded', 'close'])
+const emit = defineEmits<{
+    uploaded: [Media]
+    close: []
+}>()
 
-const files = ref([])
-const uploadState = ref({})
-const totalSize = ref(0)
+type ExtendedFile = File & { objectURL: string }
+
+const files = ref<ExtendedFile[]>([])
+const uploadState = ref<Record<string, string>>({})
+const totalSize = ref<number>(0)
 
 const { config } = usePrimeVue()
 
-const onFilesChange = (event = null) => {
+const onFilesChange = (event = null): void => {
     files.value = event?.files ?? []
     totalSize.value = 0
-    files.value.forEach((file) => {
+    files.value.forEach((file: ExtendedFile) => {
         uploadState.value[`${file.name}${file.type}${file.size}`] = 'pending'
         totalSize.value += parseInt(formatSize(file.size))
-    });
+    })
 }
-const onUploader = () => {
-    let q = '/api/media'
+const onUploader = (): void => {
+    const q = '/api/media'
 
-    files.value.forEach((file) => {
-        let formData = new FormData()
+    files.value.forEach((file: ExtendedFile) => {
+        const formData = new FormData()
         formData.append('media', file)
 
         api(q, { method: 'post', body: formData })
-            .then(res => {
+            .then((res: ResourceResponse<Media>) => {
                 uploadState.value[`${file.name}${file.type}${file.size}`] = 'uploaded'
                 emit('uploaded', res.data)
             })
@@ -37,7 +43,7 @@ const onUploader = () => {
     })
 }
 
-const formatSize = (bytes) => {
+const formatSize = (bytes: number): string => {
     const k = 1024
     const dm = 3
     const sizes = config.locale.fileSizeTypes
@@ -51,7 +57,7 @@ const formatSize = (bytes) => {
 
     return `${formattedSize} ${sizes[i]}`
 }
-const getStateBadgeSeverity = (state) => {
+const getStateBadgeSeverity = (state: string): string | null => {
     switch (state) {
         case 'pending':
             return 'warn'
@@ -75,7 +81,7 @@ const getStateBadgeSeverity = (state) => {
         @clear="onFilesChange"
         @uploader="onUploader"
     >
-        <template #header="{ chooseCallback, uploadCallback, clearCallback, files }">
+        <template #header="{ chooseCallback, uploadCallback, clearCallback }">
             <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
                 <div class="flex gap-2">
                     <Button icon="pi pi-images" rounded outlined severity="secondary" @click="chooseCallback()" />
@@ -114,15 +120,15 @@ const getStateBadgeSeverity = (state) => {
                 class="grid grid-cols-[repeat(auto-fill,_minmax(8rem,_1fr))] gap-4 mt-4"
             >
                 <div
-                    class="flex flex-col justify-between items-center gap-4 border rounded-3xl border-surface pb-2"
                     v-for="(file, index) of files"
                     :key="file.name + file.type + file.size"
+                    class="flex flex-col justify-between items-center gap-4 border rounded-3xl border-surface pb-2"
                 >
                     <img
                         class="max-h-[10rem] w-full object-contain rounded-3xl"
                         :alt="file.name"
                         :src="file.objectURL"
-                    />
+                    >
                     <div class="flex flex-col items-center gap-4 max-w-full">
                         <span class="font-semibold text-ellipsis whitespace-nowrap max-w-full overflow-hidden">
                             {{ file.name }}

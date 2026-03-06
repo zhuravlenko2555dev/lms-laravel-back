@@ -1,17 +1,26 @@
 <script setup lang="ts">
-import {onMounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import api from "@plugins/api";
-import { useDebounceFn } from "@vueuse/core";
-import MediaPicker from "@/components/MediaPicker.vue";
-import { useToast } from "primevue/usetoast";
-import { useConfirm } from "primevue/useconfirm";
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
+import { useDebounceFn } from '@vueuse/core'
+import MediaPicker from '@/components/MediaPicker.vue'
+import api from '@/plugins/api'
+import { SelectFilterEvent } from 'primevue/select'
+import { AutoCompleteCompleteEvent } from 'primevue/autocomplete'
+import { FetchError } from 'ofetch'
+import {
+    BaseModel, Book, BookDTO, Author, Genre, Publisher, Subject,
+    ResourceCollectionResponse, ResourceResponse, ValidationErrorsResponse,
+} from '@/types'
 
-const isEditing = ref(false)
-const loading = ref(true)
-const saving = ref(false)
-const deleting = ref(false)
-const record = ref({
+type FormRecord = Omit<Book, 'subjects' | 'publisher'> & BookDTO & { subjects: Record<string, Subject[]> }
+
+const isEditing = ref<boolean>(false)
+const loading = ref<boolean>(true)
+const saving = ref<boolean>(false)
+const deleting = ref<boolean>(false)
+const record = ref<FormRecord>({
     id: null,
     olid: null,
     isbn: null,
@@ -35,22 +44,22 @@ const record = ref({
     created_at: null,
     updated_at: null,
 })
-const recordName = ref()
-const errors = ref({})
+const recordName = ref<string>()
+const errors = ref<ValidationErrorsResponse['errors']>({})
 
-const authors = ref([])
-const authorsLoading = ref(false)
-const genres = ref([])
-const genresLoading = ref(false)
-const publishers = ref([])
-const publishersLoading = ref(false)
-const subjects = ref({
-    subject: null,
-    place: null,
-    people: null,
-    time: null,
+const authors = ref<Author[]>([])
+const authorsLoading = ref<boolean>(false)
+const genres = ref<Genre[]>([])
+const genresLoading = ref<boolean>(false)
+const publishers = ref<Publisher[]>([])
+const publishersLoading = ref<boolean>(false)
+const subjects = ref<Record<string, Subject[]>>({
+    subject: [],
+    place: [],
+    people: [],
+    time: [],
 })
-const subjectsLoading = ref({
+const subjectsLoading = ref<Record<string, boolean>>({
     subject: false,
     place: false,
     people: false,
@@ -74,34 +83,36 @@ watch(
         isEditing.value = !!route.params.id
 
         if (isEditing.value) loadRecord()
-    }
+    },
 )
 
-const loadRecord = () => {
+const loadRecord = (): void => {
     loading.value = true
 
-    let q = `/api/books/${route.params.id}`
+    const q = `/api/books/${route.params.id}`
 
     api(q)
-        .then(res => {
-            let { subjects, ...data } = res.data
+        .then((res: ResourceResponse<Book>) => {
+            const { publisher, subjects, ...data } = res.data
 
-            if (data.publisher) {
-                data.publisher_id = data.publisher.id
-                publishers.value = [data.publisher]
-                delete data.publisher
+            if (publisher) {
+                publishers.value = [publisher]
             }
 
-            if (subjects) {
-                data.subjects = {
-                    subject: subjects.filter((v) => v.type === 1),
-                    place: subjects.filter((v) => v.type === 2),
-                    people: subjects.filter((v) => v.type === 3),
-                    time: subjects.filter((v) => v.type === 4),
-                }
+            record.value = {
+                ...data,
+                publisher_id: publisher?.id,
+                author_ids: [],
+                genre_ids: [],
+                subject_ids: [],
+                cover_ids: [],
+                subjects: {
+                    subject: subjects?.filter(v => v.type === 1) || [],
+                    place: subjects?.filter(v => v.type === 2) || [],
+                    people: subjects?.filter(v => v.type === 3) || [],
+                    time: subjects?.filter(v => v.type === 4) || [],
+                },
             }
-
-            record.value = data
             recordName.value = record.value.name
 
             loading.value = false
@@ -110,12 +121,12 @@ const loadRecord = () => {
             loading.value = false
         })
 }
-const saveRecord = () => {
+const saveRecord = (): void => {
     saving.value = true
     errors.value = {}
 
-    let q = `/api/books/${isEditing.value ? route.params.id : ''}`
-    let method = isEditing.value ? 'put' : 'post'
+    const q = `/api/books/${isEditing.value ? route.params.id : ''}`
+    const method = isEditing.value ? 'put' : 'post'
 
     record.value.author_ids = record.value.authors.map(({ id }) => id)
     record.value.genre_ids = record.value.genres.map(({ id }) => id)
@@ -126,25 +137,31 @@ const saveRecord = () => {
             if (record.value.subjects[k].length) record.value.subject_ids.push(...record.value.subjects[k].map(({ id }) => id))
         })
 
-    const { authors, genres, covers, subjects, ...data } = record.value
+    const data = { ...record.value }
+    delete data.authors
+    delete data.genres
+    delete data.covers
+    delete data.subjects
 
     api(q, { method: method, body: data })
-        .then(res => {
+        .then((res: ResourceResponse<Book>) => {
             saving.value = false
             if (isEditing.value) {
                 recordName.value = record.value.name
             } else {
-                router.push({ name: 'books.edit', params: { id:  res.data.id} })
+                router.push({ name: 'books.edit', params: { id: res.data.id } })
             }
             toast.add({ severity: 'success', summary: 'Success', detail: 'Book info saved!', life: 3000 })
         })
-        .catch((err) => {
-            errors.value = err.data.errors
+        .catch((err: FetchError) => {
+            const r = err.data as ValidationErrorsResponse
+
+            errors.value = r.errors
             saving.value = false
-            toast.add({ severity: 'error', summary: 'Error', detail: err.data.message, life: 3000 })
+            toast.add({ severity: 'error', summary: 'Error', detail: r.message, life: 3000 })
         })
 }
-const confirmDeletion = () => {
+const confirmDeletion = (): void => {
     confirm.require({
         message: 'Are you sure you want to delete this book?',
         header: 'Confirmation',
@@ -152,45 +169,45 @@ const confirmDeletion = () => {
         rejectProps: {
             label: 'Cancel',
             severity: 'secondary',
-            outlined: true
+            outlined: true,
         },
         acceptProps: {
             label: 'Delete',
-            severity: 'danger'
+            severity: 'danger',
         },
         accept: () => {
             deleteRecord()
-        }
+        },
     })
 }
-const deleteRecord = () => {
+const deleteRecord = (): void => {
     deleting.value = true
 
-    let q = `/api/books/${route.params.id}`
+    const q = `/api/books/${route.params.id}`
 
     api(q, { method: 'delete' })
-        .then(res => {
+        .then(() => {
             deleting.value = false
             router.push({ name: 'books' })
             toast.add({ severity: 'success', summary: 'Success', detail: 'Book deleted!', life: 3000 })
         })
-        .catch((err) => {
+        .catch(() => {
             deleting.value = false
             toast.add({ severity: 'error', summary: 'Error', detail: 'Something went wrong!', life: 3000 })
         })
 }
 
-const onPublishersSearch = useDebounceFn((event) => {
+const onPublishersSearch = useDebounceFn((event: SelectFilterEvent) => {
     publishersLoading.value = true
 
-    let q = `/api/publishers?s=${event.value}`
+    const q = `/api/publishers?s=${event.value}`
 
     api(q)
-        .then(res => {
+        .then((res: ResourceCollectionResponse<Publisher>) => {
             publishers.value = [
-                ...publishers.value.filter((v) => record.value.publisher_id === v.id),
+                ...publishers.value.filter(v => record.value.publisher_id === v.id),
                 ...res.data
-                    .filter((v) => record.value.publisher_id !== v.id)
+                    .filter((v: BaseModel) => record.value.publisher_id !== v.id),
             ]
             publishersLoading.value = false
         })
@@ -199,13 +216,13 @@ const onPublishersSearch = useDebounceFn((event) => {
         })
 
 }, 500)
-const onAuthorsSearch = useDebounceFn((event) => {
+const onAuthorsSearch = useDebounceFn((event: AutoCompleteCompleteEvent) => {
     authorsLoading.value = true
 
-    let q = `/api/authors?s=${event.query}`
+    const q = `/api/authors?s=${event.query}`
 
     api(q)
-        .then(res => {
+        .then((res: ResourceCollectionResponse<Author>) => {
             authors.value = res.data
             authorsLoading.value = false
         })
@@ -214,13 +231,13 @@ const onAuthorsSearch = useDebounceFn((event) => {
         })
 
 }, 500)
-const onGenresSearch = useDebounceFn((event) => {
+const onGenresSearch = useDebounceFn((event: AutoCompleteCompleteEvent) => {
     genresLoading.value = true
 
-    let q = `/api/genres?s=${event.query}`
+    const q = `/api/genres?s=${event.query}`
 
     api(q)
-        .then(res => {
+        .then((res: ResourceCollectionResponse<Genre>) => {
             genres.value = res.data
             genresLoading.value = false
         })
@@ -229,13 +246,13 @@ const onGenresSearch = useDebounceFn((event) => {
         })
 
 }, 500)
-const onSubjectsSearch = useDebounceFn((event, type) => {
+const onSubjectsSearch = useDebounceFn((event: AutoCompleteCompleteEvent, type: string) => {
     subjectsLoading.value[type] = true
 
-    let q = `/api/subjects?s=${event.query}&type=${type}`
+    const q = `/api/subjects?s=${event.query}&type=${type}`
 
     api(q)
-        .then(res => {
+        .then((res: ResourceCollectionResponse<Subject>) => {
             subjects.value[type] = res.data
             subjectsLoading.value[type] = false
         })
@@ -254,12 +271,12 @@ const onSubjectsSearch = useDebounceFn((event, type) => {
                 <div class="card flex flex-col gap-4">
                     <div>
                         <label for="name" class="block font-bold mb-3 required">Name</label>
-                        <InputText id="name" v-model="record.name" required="true" :invalid="errors?.name?.length" />
+                        <InputText id="name" v-model="record.name" required="true" :invalid="!!errors?.name?.length" />
                         <Message v-if="errors?.name?.length" severity="error" variant="simple">{{ errors?.name[0] }}</Message>
                     </div>
                     <div>
                         <label for="description" class="block font-bold mb-3">Description</label>
-                        <Textarea id="description" v-model="record.description" required="true" :invalid="errors?.description?.length" />
+                        <Textarea id="description" v-model="record.description" :invalid="!!errors?.description?.length" />
                         <Message v-if="errors?.description?.length" severity="error" variant="simple">{{ errors?.description[0] }}</Message>
                     </div>
                 </div>
@@ -267,17 +284,17 @@ const onSubjectsSearch = useDebounceFn((event, type) => {
                 <div class="card flex flex-col md:flex-row gap-4">
                     <div class="md:w-1/4">
                         <label for="olid" class="block font-bold mb-3">OLID</label>
-                        <InputText id="olid" v-model="record.olid" required="true" :invalid="errors?.olid?.length" />
+                        <InputText id="olid" v-model="record.olid" required="true" :invalid="!!errors?.olid?.length" />
                         <Message v-if="errors?.olid?.length" severity="error" variant="simple">{{ errors?.olid[0] }}</Message>
                     </div>
                     <div class="md:w-1/4">
                         <label for="isbn" class="block font-bold mb-3">ISBN</label>
-                        <InputText id="isbn" v-model="record.isbn" required="true" :invalid="errors?.isbn?.length" />
+                        <InputText id="isbn" v-model="record.isbn" required="true" :invalid="!!errors?.isbn?.length" />
                         <Message v-if="errors?.isbn?.length" severity="error" variant="simple">{{ errors?.isbn[0] }}</Message>
                     </div>
                     <div class="md:w-1/4">
                         <label for="publish_year" class="block font-bold mb-3">Publish year</label>
-                        <InputNumber id="publish_year" v-model="record.publish_year" :use-grouping="false" required="true" :invalid="errors?.publish_year?.length" />
+                        <InputNumber id="publish_year" v-model="record.publish_year" :use-grouping="false" required="true" :invalid="!!errors?.publish_year?.length" />
                         <Message v-if="errors?.publish_year?.length" severity="error" variant="simple">{{ errors?.publish_year[0] }}</Message>
                     </div>
                     <div class="md:w-1/4">
@@ -289,11 +306,11 @@ const onSubjectsSearch = useDebounceFn((event, type) => {
                             option-value="id"
                             option-label="name"
                             :filter="true"
-                            @filter="onPublishersSearch"
                             :auto-filter-focus="true"
                             :reset-filter-on-hide="true"
                             :loading="publishersLoading"
                             placeholder="Search..."
+                            @filter="onPublishersSearch"
                         />
                         <Message v-if="errors?.publisher_id?.length" severity="error" variant="simple">{{ errors?.publisher_id[0] }}</Message>
                     </div>
@@ -326,10 +343,10 @@ const onSubjectsSearch = useDebounceFn((event, type) => {
                                     :suggestions="authors"
                                     data-key="id"
                                     option-label="name"
-                                    @complete="onAuthorsSearch"
                                     :loading="authorsLoading"
                                     placeholder="Search..."
                                     multiple
+                                    @complete="onAuthorsSearch"
                                 />
                                 <Message v-if="errors?.author_ids?.length" severity="error" variant="simple">{{ errors?.author_ids[0] }}</Message>
                             </TabPanel>
@@ -339,16 +356,17 @@ const onSubjectsSearch = useDebounceFn((event, type) => {
                                     :suggestions="genres"
                                     data-key="id"
                                     option-label="name"
-                                    @complete="onGenresSearch"
                                     :loading="genresLoading"
                                     placeholder="Search..."
                                     multiple
+                                    @complete="onGenresSearch"
                                 />
                                 <Message v-if="errors?.genre_ids?.length" severity="error" variant="simple">{{ errors?.genre_ids[0] }}</Message>
                             </TabPanel>
                             <TabPanel value="subjects">
                                 <Fieldset
                                     v-for="k in Object.keys(record.subjects)"
+                                    :key="k"
                                     :pt="{
                                         legend: {
                                             class: 'flex items-center gap-2'
@@ -356,7 +374,7 @@ const onSubjectsSearch = useDebounceFn((event, type) => {
                                     }"
                                 >
                                     <template #legend>
-                                        <i class="pi pi-users"></i>
+                                        <i class="pi pi-users" />
                                         <span class="font-bold capitalize">{{ k }}s</span>
                                     </template>
                                     <AutoComplete
@@ -364,10 +382,10 @@ const onSubjectsSearch = useDebounceFn((event, type) => {
                                         :suggestions="subjects[k]"
                                         data-key="id"
                                         option-label="name"
-                                        @complete="onSubjectsSearch($event, k)"
                                         :loading="subjectsLoading[k]"
                                         placeholder="Search..."
                                         multiple
+                                        @complete="onSubjectsSearch($event, k)"
                                     />
                                 </Fieldset>
                                 <Message v-if="errors?.subject_ids?.length" severity="error" variant="simple">{{ errors?.subject_ids[0] }}</Message>

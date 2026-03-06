@@ -1,24 +1,27 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import api from "@plugins/api";
-import { useDebounceFn } from "@vueuse/core";
-import { useToast } from "primevue/usetoast";
-import { useConfirm } from "primevue/useconfirm";
-import MediaGallery from "@/components/MediaGallery.vue";
-import MediaUpload from "@/components/MediaUpload.vue";
-import Record from "@/views/pages/Media/Record.vue";
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
+import { useDebounceFn } from '@vueuse/core'
+import Record from '@/views/pages/Media/Record.vue'
+import MediaGallery from '@/components/MediaGallery.vue'
+import MediaUpload from '@/components/MediaUpload.vue'
+import api from '@/plugins/api'
+import { PageState } from 'primevue/paginator'
+import { MenuItem } from 'primevue/menuitem'
+import { Media, QueryParams, PageReport, ResourceCollectionResponse } from '@/types'
 
-const loading = ref(true)
-const records = ref()
-const pageReport = ref({
+const loading = ref<boolean>(true)
+const records = ref<Media[]>()
+const pageReport = ref<PageReport>({
     first: 0,
     last: 0,
     totalRecords: 0,
 })
-const s = ref('')
-const page = ref(1)
-const perPage = ref(25)
+const s = ref<string>('')
+const page = ref<number>(1)
+const perPage = ref<number>(25)
 
 const route = useRoute()
 const router = useRouter()
@@ -35,15 +38,15 @@ watch(
     () => {
         processRoute()
         loadRecords()
-    }
+    },
 )
 
-const loadRecords = () => {
+const loadRecords = (): void => {
     loading.value = true
 
     let q = '/api/media?'
 
-    let params: any = {}
+    const params: QueryParams = {}
     if (s.value) params['s'] = s.value
     if (page.value > 1) params.page = page.value
     if (perPage.value !== 25) params['per-page'] = perPage.value
@@ -53,7 +56,7 @@ const loadRecords = () => {
     }
 
     api(q)
-        .then(res => {
+        .then((res: ResourceCollectionResponse<Media>) => {
             records.value = res.data
             pageReport.value = {
                 first: res.meta.from - 1,
@@ -66,7 +69,7 @@ const loadRecords = () => {
             loading.value = false
         })
 }
-const confirmDeletion = (id) => {
+const confirmDeletion = (id: number): void => {
     confirm.require({
         message: 'Are you sure you want to delete this media?',
         header: 'Confirmation',
@@ -74,53 +77,54 @@ const confirmDeletion = (id) => {
         rejectProps: {
             label: 'Cancel',
             severity: 'secondary',
-            outlined: true
+            outlined: true,
         },
         acceptProps: {
             label: 'Delete',
-            severity: 'danger'
+            severity: 'danger',
         },
         accept: () => {
             deleteRecord(id)
-        }
+        },
     })
 }
-const deleteRecord = (id) => {
-    let q = `/api/media/${id}`
+const deleteRecord = (id: number): void => {
+    const q = `/api/media/${id}`
 
     api(q, { method: 'delete' })
-        .then(res => {
+        .then(() => {
             loadRecords()
             toast.add({ severity: 'success', summary: 'Success', detail: 'Media deleted!', life: 3000 })
         })
-        .catch((err) => {
+        .catch(() => {
             toast.add({ severity: 'error', summary: 'Error', detail: 'Something went wrong!', life: 3000 })
         })
 }
 
-const onSearch = useDebounceFn((event) => {
-    s.value = event.target.value
+const onSearch = useDebounceFn((event: InputEvent) => {
+    const target = event.target as HTMLInputElement
+    s.value = target.value
     page.value = 1
 
     pushToHistory()
 }, 500)
-const onPage = (event) => {
+const onPage = (event: PageState) => {
     page.value = event.page + 1
 
     pushToHistory()
 }
 
-const recordModalVisible = ref(false)
+const recordModalVisible = ref<boolean>(false)
 
-const menuOnIndex = ref(0)
-const mediaMenuOptions = ref([
+const menuOnIndex = ref<number>(0)
+const mediaMenuOptions = ref<MenuItem[]>([
     {
         key: 'media-edit',
         label: 'Edit',
         icon: 'pi pi-pencil',
         command: () => {
             recordModalVisible.value = true
-        }
+        },
     },
     {
         key: 'media-delete',
@@ -129,24 +133,24 @@ const mediaMenuOptions = ref([
         style: 'color: var(--p-red-500)',
         command: () => {
             confirmDeletion(records.value[menuOnIndex.value].id)
-        }
-    }
+        },
+    },
 ])
 
-const mediaUploadVisible = ref(false)
-const onUploaded = (media) => {
+const mediaUploadVisible = ref<boolean>(false)
+const onUploaded = (media: Media): void => {
     records.value.unshift(media)
 }
 
-const processRoute = () => {
+const processRoute = (): void => {
     const params = route.query
 
-    s.value = params.s ?? ''
+    s.value = (params.s as string) ?? ''
     page.value = params.page ? +params.page : 1
     perPage.value = params['per-page'] ? +params['per-page'] : 25
 }
-const pushToHistory = () => {
-    let params: any = {}
+const pushToHistory = (): void => {
+    const params: QueryParams = {}
 
     if (s.value) params['s'] = s.value
     if (page.value > 1) params.page = page.value
@@ -161,9 +165,9 @@ const pushToHistory = () => {
         <Toolbar class="mb-4" :pt="{start: {class: 'gap-4'}, end: {class: 'gap-4'}}">
             <template #center>
                 <Paginator
+                    v-model:rows="perPage"
                     :first="pageReport.first"
                     :last="pageReport.last"
-                    v-model:rows="perPage"
                     :total-records="pageReport.totalRecords"
                     :rows-per-page-options="[10, 25, 50, 100]"
                     template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
@@ -178,20 +182,20 @@ const pushToHistory = () => {
                     <InputIcon>
                         <i class="pi pi-search" />
                     </InputIcon>
-                    <InputText type="search" v-model="s" @input="onSearch" placeholder="Search..." />
+                    <InputText v-model="s" type="search" placeholder="Search..." @input="onSearch" />
                 </IconField>
             </template>
         </Toolbar>
 
         <MediaGallery
-            :media="records"
             v-model:menu-on-index="menuOnIndex"
+            :media="records"
             :media-menu-options="mediaMenuOptions"
         />
 
         <Dialog
-            class="overflow-auto"
             v-model:visible="mediaUploadVisible"
+            class="overflow-auto"
             :style="{ width: '40vw' }"
             :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
             :block-scroll="true"

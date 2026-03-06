@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import api from "@plugins/api";
-import { useToast } from "primevue/usetoast";
+import { onMounted, ref } from 'vue'
+import { useToast } from 'primevue/usetoast'
+import api from '@/plugins/api'
+import { FetchError } from 'ofetch'
+import { Media, ResourceResponse, ValidationErrorsResponse } from '@/types'
 
-const { id } = defineProps(['id'])
+const { id } = defineProps<{
+    id: number
+}>()
 
-const loading = ref(true)
-const saving = ref(false)
-const record = ref({
+const loading = ref<boolean>(true)
+const saving = ref<boolean>(false)
+const record = ref<Media>({
+    id: null,
     disk: null,
     directory: null,
     name: null,
@@ -23,8 +28,10 @@ const record = ref({
     url: null,
     size_for_humans: null,
     pretty_name: null,
+    created_at: null,
+    updated_at: null,
 })
-const errors = ref({})
+const errors = ref<ValidationErrorsResponse['errors']>({})
 
 const toast = useToast()
 
@@ -32,13 +39,13 @@ onMounted(() => {
     loadRecord()
 })
 
-const loadRecord = () => {
+const loadRecord = (): void => {
     loading.value = true
 
-    let q = `/api/media/${id}`
+    const q = `/api/media/${id}`
 
     api(q)
-        .then(res => {
+        .then((res: ResourceResponse<Media>) => {
             record.value = res.data
             loading.value = false
         })
@@ -46,21 +53,23 @@ const loadRecord = () => {
             loading.value = false
         })
 }
-const saveRecord = () => {
+const saveRecord = (): void => {
     saving.value = true
     errors.value = {}
 
-    let q = `/api/media/${record.value.id}`
+    const q = `/api/media/${record.value.id}`
 
     api(q, { method: 'put', body: record.value })
-        .then(res => {
+        .then(() => {
             saving.value = false
             toast.add({ severity: 'success', summary: 'Success', detail: 'Media info saved!', life: 3000 })
         })
-        .catch((err) => {
-            errors.value = err.data.errors
+        .catch((err: FetchError) => {
+            const r = err.data as ValidationErrorsResponse
+
+            errors.value = r.errors
             saving.value = false
-            toast.add({ severity: 'error', summary: 'Error', detail: err.data.message, life: 3000 })
+            toast.add({ severity: 'error', summary: 'Error', detail: r.message, life: 3000 })
         })
 }
 </script>
@@ -75,10 +84,10 @@ const saveRecord = () => {
                     :alt="record.alt"
                     preview
                     :pt="{
-                    image: {
-                        class: 'object-contain'
-                    }
-                }"
+                        image: {
+                            class: 'object-contain'
+                        }
+                    }"
                 />
             </div>
             <div class="md:w-2/3">
@@ -124,8 +133,8 @@ const saveRecord = () => {
                                     <div v-if="record.sizes?.length">
                                         <div class="font-bold mb-1">Generated sizes</div>
                                         <span class="text-muted-color">
-                                        {{ record.sizes?.map((v) => `${v}w`).join(', ') }}
-                                    </span>
+                                            {{ record.sizes?.map((v) => `${v}w`).join(', ') }}
+                                        </span>
                                     </div>
                                 </div>
                                 <div>
@@ -140,12 +149,12 @@ const saveRecord = () => {
                             <Fluid class="flex flex-col gap-4">
                                 <div>
                                     <label for="alt" class="block font-bold mb-3">Alt</label>
-                                    <Textarea id="alt" v-model="record.alt" maxlength="125" :invalid="errors?.alt?.length" />
+                                    <Textarea id="alt" v-model="record.alt" maxlength="125" :invalid="!!errors?.alt?.length" />
                                     <Message v-if="errors?.alt?.length" severity="error" variant="simple">{{ errors?.alt[0] }}</Message>
                                 </div>
                                 <div>
                                     <label for="title" class="block font-bold mb-3">Title</label>
-                                    <Textarea id="title" v-model="record.title" maxlength="125" :invalid="errors?.title?.length" />
+                                    <Textarea id="title" v-model="record.title" maxlength="125" :invalid="!!errors?.title?.length" />
                                     <Message v-if="errors?.title?.length" severity="error" variant="simple">{{ errors?.title[0] }}</Message>
                                 </div>
                             </Fluid>

@@ -1,50 +1,51 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref } from 'vue'
+import Menu from 'primevue/menu'
+import { MenuItem } from 'primevue/menuitem'
+import { Media } from '@/types'
 
 const {
     media,
-    menuOnIndex,
     mediaMenuOptions = [],
     selectable = false,
     selectedMediaIds = [],
-} = defineProps([
-    'media',
-    'menuOnIndex',
-    'mediaMenuOptions',
-    'selectable',
-    'selectedMediaIds',
-])
-const emit = defineEmits([
-    'toggle-on-index',
-    'update:menu-on-index',
-    'update:selected-media-ids',
-])
+} = defineProps<{
+    media: Media[]
+    mediaMenuOptions?: MenuItem[]
+    selectable?: boolean
+    selectedMediaIds?: number[]
+}>()
+const emit = defineEmits<{
+    'update:menu-on-index': [number]
+    'update:selected-media-ids': [number[]]
+}>()
 
-const visible = ref(false)
-const activeIndex = ref(0)
+const visible = ref<boolean>(false)
+const activeIndex = ref<number>(0)
 
-const mediaMenu = ref()
-const mediaMenuVisible = computed(() => {
-    return !selectedMediaIds.length && mediaMenuOptions.length
+const mediaMenu = ref<InstanceType<typeof Menu>>()
+const mediaMenuVisible = computed<boolean>(() => {
+    return selectedMediaIds.length === 0 && mediaMenuOptions.length > 0
 })
 
-const itemClick = (index) => {
+const itemClick = (index: number): void => {
     activeIndex.value = index
     visible.value = true
 }
 
-const onMediaMenuToggle = (event, index) => {
+const onMediaMenuToggle = (event: MouseEvent, index: number): void => {
     emit('update:menu-on-index', index)
     mediaMenu.value.toggle(event)
 }
-const onMediaSelect = (event) => {
-    let value = +event.target.value
-    let ids
+const onMediaSelect = (event: Event): void => {
+    const target = event.target as HTMLInputElement
+    const value = Number(target.value)
+    let ids: number[]
 
-    if (event.target.checked) {
+    if (target.checked) {
         ids = [...selectedMediaIds, value]
     } else {
-        ids = selectedMediaIds.filter((v) => v !== value)
+        ids = selectedMediaIds.filter(v => v !== value)
     }
 
     emit('update:selected-media-ids', ids)
@@ -57,30 +58,30 @@ const onMediaSelect = (event) => {
             v-model:active-index="activeIndex"
             v-model:visible="visible"
             :value="media"
-            containerStyle="max-width: 500px"
+            container-style="max-width: 500px"
             :circular="true"
             :full-screen="true"
             :show-item-navigators="true"
             :show-thumbnails="false"
         >
             <template #item="slotProps">
-                <img :src="slotProps.item.url" :alt="slotProps.item.alt" style="width: 100%; display: block" />
+                <img :src="slotProps.item.url" :alt="slotProps.item.alt" style="width: 100%; display: block">
             </template>
         </Galleria>
 
         <TransitionGroup name="media-container" tag="div" class="grid grid-cols-[repeat(auto-fill,_minmax(10rem,_1fr))] gap-4">
             <div
+                v-for="(item, index) of media"
+                :key="item.id"
                 class="media-item col-span-1 aspect-square relative"
-                v-for="(media, index) of media"
-                :key="media.id"
             >
                 <img
                     class="max-h-full w-full h-full object-cover rounded-3xl"
                     style="cursor: pointer"
-                    :src="media.url"
-                    :alt="media.alt"
+                    :src="item.url"
+                    :alt="item.alt"
                     @click="itemClick(index)"
-                />
+                >
 
                 <div class="absolute left-0 top-0 w-full flex items-center justify-between">
                     <div>
@@ -89,8 +90,8 @@ const onMediaSelect = (event) => {
                             class="ml-3 items-center"
                             style="height: 2.5rem"
                             :model-value="selectedMediaIds"
+                            :value="item.id"
                             @change="onMediaSelect"
-                            :value="media.id"
                         />
                     </div>
 
@@ -109,8 +110,8 @@ const onMediaSelect = (event) => {
             </div>
 
             <Menu
-                ref="mediaMenu"
                 id="mediaOverlayMenu"
+                ref="mediaMenu"
                 :model="mediaMenuOptions"
                 :popup="true"
                 :dt="{
@@ -128,7 +129,7 @@ const onMediaSelect = (event) => {
     </div>
     <div v-else class="flex items-center justify-center">
         <div class="flex-col">
-            <i class="pi pi-images block text-center" style="font-size: 7.5rem; color: var(--p-primary-color)" />
+            <i class="pi pi-images block text-center text-primary" style="font-size: 7.5rem" />
             <span class="text-3xl">No media yet...</span>
         </div>
     </div>

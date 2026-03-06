@@ -31,7 +31,7 @@ class ResizeMediaJob implements ShouldQueue
     {
         $generatedSizes = [];
 
-        $oriiginalImage = $this->manager->read(Storage::path($this->media->path));
+        $originalImage = $this->manager->read(Storage::path($this->media->path));
 
         foreach ($this->sizes as $size) {
             [$w, $h] = explode('x', $size);
@@ -40,11 +40,11 @@ class ResizeMediaJob implements ShouldQueue
                 continue;
             }
 
-            $resizedImage = clone $oriiginalImage;
+            $resizedImage = clone $originalImage;
             $resizedImage->scale($w, $h);
 
             $extension = 'webp';
-            $path = "{$this->media->directory}/{$w}/{$this->media->name}.{$extension}";
+            $path = "{$this->media->directory}/$w/{$this->media->name}.$extension";
             Storage::put($path, $resizedImage->encode(new WebpEncoder(90, true)));
 
             $generatedSizes[] = $w;

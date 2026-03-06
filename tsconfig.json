@@ -2,14 +2,11 @@
     "compilerOptions": {
         "target": "ESNext",
         "module": "ESNext",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "baseUrl": ".",
         "paths": {
             "@/*": [
                 "resources/ts/*"
-            ],
-            "@plugins/*": [
-                "resources/ts/plugins/*"
             ]
         }
     },

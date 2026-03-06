@@ -1,7 +1,7 @@
-import AppLayout from '@/layout/AppLayout.vue';
-import { createRouter, createWebHistory } from 'vue-router';
+import { Router, createRouter, createWebHistory } from 'vue-router'
+import AppLayout from '@/layout/AppLayout.vue'
 
-const router = createRouter({
+const router: Router = createRouter({
     history: createWebHistory(),
     routes: [
         {
@@ -18,8 +18,8 @@ const router = createRouter({
                             meta: {
                                 breadcrumbs: [
                                     { label: 'Books' },
-                                ]
-                            }
+                                ],
+                            },
                         },
                         {
                             name: 'books.create',
@@ -29,8 +29,8 @@ const router = createRouter({
                                 breadcrumbs: [
                                     { label: 'Books', to: '/admin/books' },
                                     { label: 'Create' },
-                                ]
-                            }
+                                ],
+                            },
                         },
                         {
                             name: 'books.edit',
@@ -40,10 +40,10 @@ const router = createRouter({
                                 breadcrumbs: [
                                     { label: 'Books', to: '/admin/books' },
                                     { label: 'Edit' },
-                                ]
-                            }
-                        }
-                    ]
+                                ],
+                            },
+                        },
+                    ],
                 },
                 {
                     path: 'media',
@@ -55,14 +55,14 @@ const router = createRouter({
                             meta: {
                                 breadcrumbs: [
                                     { label: 'Media' },
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
+                                ],
+                            },
+                        },
+                    ],
+                },
+            ],
+        },
+    ],
 })
 
-export default router;
+export default router
