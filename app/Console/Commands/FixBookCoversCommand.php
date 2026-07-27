@@ -41,7 +41,7 @@ class FixBookCoversCommand extends Command
                     $filename = last(explode('/', $book->image_large));
                     $path = $this->oldDirectory."/l/{$filename}";
 
-                    if (! Storage::exists($path)) {
+                    if (!Storage::exists($path)) {
                         continue;
                     }
 

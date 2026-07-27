@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { usePrimeVue } from 'primevue/config'
-import api from '@/plugins/api'
+import { useApi } from '@/composables/useApi'
 import { Media, ResourceResponse } from '@/types'
 
 const emit = defineEmits<{
@@ -16,6 +16,7 @@ const uploadState = ref<Record<string, string>>({})
 const totalSize = ref<number>(0)
 
 const { config } = usePrimeVue()
+const api = useApi()
 
 const onFilesChange = (event = null): void => {
     files.value = event?.files ?? []

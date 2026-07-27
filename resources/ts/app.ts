@@ -10,9 +10,6 @@ import { definePreset } from '@primevue/themes'
 const app: RuntimeApp<Element> = createApp(App)
 
 const Preset: typeof Aura = definePreset(Aura, {
-    options: {
-        darkModeSelector: '.app-dark',
-    },
     components: {
         breadcrumb: {
             root: {
@@ -26,6 +23,9 @@ app.use(router)
 app.use(PrimeVue, {
     theme: {
         preset: Preset,
+        options: {
+            darkModeSelector: '.app-dark',
+        },
     },
 })
 app.use(ToastService)

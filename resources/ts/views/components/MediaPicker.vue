@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import Record from '@/views/pages/Media/Record.vue'
-import MediaGallery from '@/components/MediaGallery.vue'
-import MediaModal from '@/components/MediaModal.vue'
+import MediaGallery from '@/views/components/MediaGallery.vue'
+import MediaModal from '@/views/components/MediaModal.vue'
 import Menu from 'primevue/menu'
 import { MenuItem } from 'primevue/menuitem'
 import { Media } from '@/types'

@@ -4,8 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useDebounceFn } from '@vueuse/core'
-import MediaPicker from '@/components/MediaPicker.vue'
-import api from '@/plugins/api'
+import { useApi } from '@/composables/useApi'
+import MediaPicker from '@/views/components/MediaPicker.vue'
 import { SelectFilterEvent } from 'primevue/select'
 import { AutoCompleteCompleteEvent } from 'primevue/autocomplete'
 import { FetchError } from 'ofetch'
@@ -70,6 +70,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const confirm = useConfirm()
+const api = useApi()
 
 onMounted(() => {
     isEditing.value = !!route.params.id
@@ -149,7 +150,7 @@ const saveRecord = (): void => {
             if (isEditing.value) {
                 recordName.value = record.value.name
             } else {
-                router.push({ name: 'books.edit', params: { id: res.data.id } })
+                router.push({ name: 'admin.books.edit', params: { id: res.data.id } })
             }
             toast.add({ severity: 'success', summary: 'Success', detail: 'Book info saved!', life: 3000 })
         })
@@ -188,7 +189,7 @@ const deleteRecord = (): void => {
     api(q, { method: 'delete' })
         .then(() => {
             deleting.value = false
-            router.push({ name: 'books' })
+            router.push({ name: 'admin.books.index' })
             toast.add({ severity: 'success', summary: 'Success', detail: 'Book deleted!', life: 3000 })
         })
         .catch(() => {

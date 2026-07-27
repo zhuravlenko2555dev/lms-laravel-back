@@ -72,7 +72,7 @@ const onMediaSelect = (event: Event): void => {
         <TransitionGroup name="media-container" tag="div" class="grid grid-cols-[repeat(auto-fill,_minmax(10rem,_1fr))] gap-4">
             <div
                 v-for="(item, index) of media"
-                :key="item.id"
+                :key="`media-item-${item.id}`"
                 class="media-item col-span-1 aspect-square relative"
             >
                 <img
@@ -108,24 +108,24 @@ const onMediaSelect = (event: Event): void => {
                     </div>
                 </div>
             </div>
-
-            <Menu
-                id="mediaOverlayMenu"
-                ref="mediaMenu"
-                :model="mediaMenuOptions"
-                :popup="true"
-                :dt="{
-                    item: {
-                        color: 'none',
-                        focusColor: 'none',
-                        icon: {
-                            color: 'none',
-                            focusColor: 'none'
-                        }
-                    }
-                }"
-            />
         </TransitionGroup>
+
+        <Menu
+            id="mediaOverlayMenu"
+            ref="mediaMenu"
+            :model="mediaMenuOptions"
+            :popup="true"
+            :dt="{
+                item: {
+                    color: 'none',
+                    focusColor: 'none',
+                    icon: {
+                        color: 'none',
+                        focusColor: 'none'
+                    }
+                }
+            }"
+        />
     </div>
     <div v-else class="flex items-center justify-center">
         <div class="flex-col">

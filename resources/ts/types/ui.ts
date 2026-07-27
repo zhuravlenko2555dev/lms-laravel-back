@@ -19,12 +19,6 @@ export interface Breadcrumb {
     to?: string
 }
 
-declare module 'vue-router' {
-    interface RouteMeta {
-        breadcrumbs?: Breadcrumb[]
-    }
-}
-
 export interface PageReport {
     first: number
     last: number

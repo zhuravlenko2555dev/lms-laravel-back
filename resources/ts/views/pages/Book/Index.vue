@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useDebounceFn } from '@vueuse/core'
-import api from '@/plugins/api'
+import { useApi } from '@/composables/useApi'
 import { DataTableMethods } from 'primevue'
 import { DataTableFilterEvent, DataTableFilterMeta, DataTablePageEvent, DataTableSortEvent } from 'primevue/datatable'
 import { MultiSelectFilterEvent } from 'primevue/multiselect'
@@ -32,6 +32,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const confirm = useConfirm()
+const api = useApi()
 
 onMounted(() => {
     processRoute()
@@ -359,7 +360,7 @@ const pushToHistory = (): void => {
         }
     }
 
-    router.push({ name: 'books', query: params })
+    router.push({ name: 'admin.books.index', query: params })
 }
 </script>
 
@@ -393,7 +394,7 @@ const pushToHistory = (): void => {
                 <template #header>
                     <div class="flex justify-between">
                         <div class="flex gap-2">
-                            <RouterLink class="mr-2" :to="{ name: 'books.create' }">
+                            <RouterLink class="mr-2" :to="{ name: 'admin.books.create' }">
                                 <Button icon="pi pi-plus" outlined rounded />
                             </RouterLink>
 
@@ -576,7 +577,7 @@ const pushToHistory = (): void => {
                 </Column>
                 <Column style="min-width: 12rem">
                     <template #body="slotProps">
-                        <RouterLink class="mr-2" :to="{ name: 'books.edit', params: { id: slotProps.data.id} }">
+                        <RouterLink class="mr-2" :to="{ name: 'admin.books.edit', params: { id: slotProps.data.id} }">
                             <Button icon="pi pi-pencil" outlined rounded />
                         </RouterLink>
                         <Button

@@ -4,16 +4,16 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useDebounceFn } from '@vueuse/core'
+import { useApi } from '@/composables/useApi'
 import Record from '@/views/pages/Media/Record.vue'
-import MediaGallery from '@/components/MediaGallery.vue'
-import MediaUpload from '@/components/MediaUpload.vue'
-import api from '@/plugins/api'
+import MediaGallery from '@/views/components/MediaGallery.vue'
+import MediaUpload from '@/views/components/MediaUpload.vue'
 import { PageState } from 'primevue/paginator'
 import { MenuItem } from 'primevue/menuitem'
 import { Media, QueryParams, PageReport, ResourceCollectionResponse } from '@/types'
 
 const loading = ref<boolean>(true)
-const records = ref<Media[]>()
+const records = ref<Media[]>([])
 const pageReport = ref<PageReport>({
     first: 0,
     last: 0,
@@ -27,6 +27,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const confirm = useConfirm()
+const api = useApi()
 
 onMounted(() => {
     processRoute()
@@ -156,7 +157,7 @@ const pushToHistory = (): void => {
     if (page.value > 1) params.page = page.value
     if (perPage.value !== 25) params['per-page'] = perPage.value
 
-    router.push({ name: 'media', query: params })
+    router.push({ name: 'admin.media.index', query: params })
 }
 </script>
 

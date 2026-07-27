@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import api from '@/plugins/api'
+import { useApi } from '@/composables/useApi'
 import { FetchError } from 'ofetch'
 import { Media, ResourceResponse, ValidationErrorsResponse } from '@/types'
 
@@ -34,6 +34,7 @@ const record = ref<Media>({
 const errors = ref<ValidationErrorsResponse['errors']>({})
 
 const toast = useToast()
+const api = useApi()
 
 onMounted(() => {
     loadRecord()

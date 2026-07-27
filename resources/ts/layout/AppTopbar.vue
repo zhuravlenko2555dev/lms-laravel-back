@@ -1,7 +1,38 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { FetchError } from 'ofetch'
+import { useToast } from 'primevue/usetoast'
 import { useLayout } from '@/layout/composables/layout'
+import { useApi } from '@/composables/useApi'
+import { useAuth } from '@/composables/useAuth'
 
 const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout()
+
+const router = useRouter()
+const toast = useToast()
+const api = useApi()
+const { setUser } = useAuth()
+
+const loggingOut = ref<boolean>(false)
+
+const logout = (): void => {
+    if (loggingOut.value) {
+        return
+    }
+
+    loggingOut.value = true
+
+    api('/api/auth/logout', { method: 'post' })
+        .catch((err: FetchError) => {
+            toast.add({ severity: 'error', summary: 'Error', detail: err.data?.message ?? 'Logout failed', life: 3000 })
+        })
+        .finally(async () => {
+            setUser(null)
+            loggingOut.value = false
+            await router.push({ name: 'login' })
+        })
+}
 </script>
 
 <template>
@@ -60,6 +91,10 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout()
                     <button type="button" class="layout-topbar-action">
                         <i class="pi pi-user" />
                         <span>Profile</span>
+                    </button>
+                    <button type="button" class="layout-topbar-action" :disabled="loggingOut" @click="logout">
+                        <i class="pi pi-sign-out" />
+                        <span>Logout</span>
                     </button>
                 </div>
             </div>

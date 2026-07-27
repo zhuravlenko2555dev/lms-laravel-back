@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\AuthorController;
-use App\Http\Controllers\BookController;
-use App\Http\Controllers\GenreController;
-use App\Http\Controllers\MediaController;
-use App\Http\Controllers\PublisherController;
-use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\Api\AuthorController;
+use App\Http\Controllers\Api\BookController;
+use App\Http\Controllers\Api\GenreController;
+use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\PublisherController;
+use App\Http\Controllers\Api\SubjectController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 |
 | Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
+| routes are loaded by the RouteServiceProvider, and all of them will
 | be assigned to the "api" middleware group. Make something great!
 |
 */

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Requests\BookRequest;
+use App\Http\Requests\Api\BookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Database\Eloquent\Builder;

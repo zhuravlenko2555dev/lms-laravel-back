@@ -44,7 +44,7 @@ class MediaService
             'ext' => $extension,
         ]);
 
-        if (! empty($sizes)) {
+        if (!empty($sizes)) {
             ResizeMediaJob::dispatch($media, $sizes);
         }
 
@@ -59,7 +59,7 @@ class MediaService
         $files = [
             $media->path,
         ];
-        if (! empty($media->sizes)) {
+        if (!empty($media->sizes)) {
             foreach ($media->sizes as $size) {
                 $files[] = "{$media->directory}/{$size}/{$media->name}.{$extension}";
             }

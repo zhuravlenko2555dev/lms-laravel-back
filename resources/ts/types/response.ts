@@ -1,3 +1,9 @@
+import { JSONValue } from '@/types'
+
+export interface JsonResponse {
+    [key: string]: JSONValue
+}
+
 export interface ResourceResponse<T> {
     data: T
 }

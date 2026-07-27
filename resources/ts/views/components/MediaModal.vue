@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, toRefs, watch } from 'vue'
 import { useDebounceFn, useScroll } from '@vueuse/core'
-import MediaGallery from '@/components/MediaGallery.vue'
-import MediaUpload from '@/components/MediaUpload.vue'
-import api from '@/plugins/api'
+import { useApi } from '@/composables/useApi'
+import MediaGallery from '@/views/components/MediaGallery.vue'
+import MediaUpload from '@/views/components/MediaUpload.vue'
 import { Media, QueryParams, PageReport, ResourceCollectionResponse } from '@/types'
 
 const { exceptIds } = defineProps<{
@@ -26,6 +26,8 @@ const append = ref<boolean>(false)
 const s = ref<string>('')
 const page = ref<number>(1)
 const perPage = ref<number>(25)
+
+const api = useApi()
 
 onMounted(() => {
     loadRecords()
