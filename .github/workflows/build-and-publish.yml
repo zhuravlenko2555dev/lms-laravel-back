@@ -1,0 +1,98 @@
+name: Build & Publish
+
+# On merge to dev: build the image, scan it (fail on HIGH/CRITICAL), push to the
+# self-hosted registry tagged with the git SHA, then bump the DEV image tag in
+# the CONFIG repo so ArgoCD rolls it out.
+#
+# Runner prerequisites (see docs/USAGE.md):
+#   - docker (buildx), trivy, git, yq installed on the self-hosted runner
+#   - the private CA trusted by the runner (registry.lms.local is TLS via a
+#     private CA) and *.lms.local resolvable to the Traefik LB IP.
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-publish-dev
+  cancel-in-progress: false
+
+env:
+  REGISTRY: registry.lms.local
+  IMAGE: registry.lms.local/app-back
+
+jobs:
+  build-scan-push:
+    runs-on: [self-hosted, linux]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute image tag (git SHA)
+        id: meta
+        run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Build image
+        run: |
+          docker build \
+            --file docker/Dockerfile \
+            --tag "$IMAGE:${{ steps.meta.outputs.tag }}" \
+            --tag "$IMAGE:dev" \
+            .
+
+      - name: Trivy scan (fail on HIGH/CRITICAL)
+        run: |
+          trivy image \
+            --exit-code 1 \
+            --severity HIGH,CRITICAL \
+            --ignore-unfixed \
+            --no-progress \
+            "$IMAGE:${{ steps.meta.outputs.tag }}"
+
+      - name: Registry login
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        run: printf '%s' "$REGISTRY_PASSWORD" | docker login "$REGISTRY" -u "$REGISTRY_USERNAME" --password-stdin
+
+      - name: Push image
+        run: |
+          docker push "$IMAGE:${{ steps.meta.outputs.tag }}"
+          docker push "$IMAGE:dev"
+
+      - name: Registry logout
+        if: always()
+        run: docker logout "$REGISTRY" || true
+
+      - name: Bump dev image tag in config repo
+        env:
+          CONFIG_REPO_DEPLOY_KEY: ${{ secrets.CONFIG_REPO_DEPLOY_KEY }}
+          CONFIG_REPO_SSH: ${{ vars.CONFIG_REPO_SSH }}   # git@github.com:zhuravlenko2555dev/lms-k8s.git
+          IMAGE_TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          keyfile="$(mktemp)"
+          printf '%s\n' "$CONFIG_REPO_DEPLOY_KEY" > "$keyfile"
+          chmod 600 "$keyfile"
+          export GIT_SSH_COMMAND="ssh -i $keyfile -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+          trap 'rm -f "$keyfile"' EXIT
+
+          workdir="$(mktemp -d)"
+          git clone --depth 1 "$CONFIG_REPO_SSH" "$workdir"
+          cd "$workdir"
+
+          # Update the image tag for the dev environment.
+          yq -i ".image.tag = strenv(IMAGE_TAG)" envs/dev/values.yaml
+
+          git config user.name  "app-ci[bot]"
+          git config user.email "app-ci@users.noreply.github.com"
+          git add envs/dev/values.yaml
+          if git diff --cached --quiet; then
+            echo "No change — tag already ${IMAGE_TAG}."
+            exit 0
+          fi
+          git commit -m "ci(dev): deploy image ${IMAGE_TAG}"
+          git push origin HEAD

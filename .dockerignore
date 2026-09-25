@@ -1,0 +1,36 @@
+# Keep the build context small and avoid leaking secrets/dev artifacts.
+.git
+.gitignore
+.gitattributes
+.github
+.idea
+.fleet
+.vscode
+.DS_Store
+
+# Dependencies are installed inside the image, not copied from the host.
+node_modules
+vendor
+
+# Never ship local env / secrets / keys into an image.
+.env
+.env.*
+!.env.example
+auth.json
+storage/*.key
+
+# Build/runtime artifacts and caches (regenerated in the image).
+public/build
+public/hot
+public/storage
+bootstrap/cache/*.php
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+.phpunit.cache
+.phpunit.result.cache
+
+# Docs / tests are not needed in the runtime image (kept out of the context
+# for the runtime stage; CI checks them from a normal checkout instead).
+*.log

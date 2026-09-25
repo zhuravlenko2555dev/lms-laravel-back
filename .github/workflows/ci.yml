@@ -1,0 +1,91 @@
+name: CI
+
+# Test, lint, static checks and dependency audit. Runs on our own
+# self-hosted runner. No image build here (see build-and-publish.yml).
+
+on:
+  pull_request:
+  push:
+    branches: [dev, master]
+
+# Least privilege: read-only token.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: [self-hosted, linux]
+    # Requires the runner to have PHP 8.3 + Composer available (see docs/USAGE.md).
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_DATABASE: testing
+          MYSQL_ROOT_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -psecret"
+          --health-interval=10s --health-timeout=5s --health-retries=15
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: testing
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+    steps:
+      # Pin to a full commit SHA before production (see SECURITY-REVIEW.md).
+      - uses: actions/checkout@v4
+
+      - name: Composer cache
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Code style (Pint, check only)
+        run: vendor/bin/pint --test
+
+      - name: PHPUnit
+        run: |
+          cp -n .env.example .env || true
+          php artisan key:generate --force
+          php artisan config:clear
+          php artisan test --no-ansi
+
+      - name: Composer security audit
+        run: composer audit --no-interaction
+
+  frontend:
+    runs-on: [self-hosted, linux]
+    # Requires the runner to have Node 22 available (see docs/USAGE.md).
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
+
+      - name: Install JS dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: ESLint
+        run: npx eslint .
+
+      - name: Vite build (smoke check)
+        run: npm run build
+
+      - name: npm security audit (high+)
+        run: npm audit --audit-level=high

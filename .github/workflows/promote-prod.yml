@@ -1,0 +1,78 @@
+name: Promote to prod
+
+# Gated dev -> prod promotion. NO rebuild and NO push: the already-built,
+# already-scanned image tag that is running in dev is promoted by opening a
+# PULL REQUEST that bumps envs/prod/values.yaml in the config repo. A human
+# reviews/merges the PR; ArgoCD (prod = manual/PR-gated) then syncs.
+#
+# Runner prerequisites: git, yq, and gh (GitHub CLI) on the self-hosted runner.
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Tested image tag (git SHA) currently running in dev"
+        required: true
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote-prod
+  cancel-in-progress: false
+
+jobs:
+  open-promotion-pr:
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Resolve image tag
+        id: tag
+        run: |
+          if [ -n "${{ github.event.inputs.image_tag }}" ]; then
+            echo "value=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            # release trigger: promote the tag matching the release name.
+            echo "value=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open PR bumping prod image tag (no rebuild)
+        env:
+          CONFIG_REPO_DEPLOY_KEY: ${{ secrets.CONFIG_REPO_DEPLOY_KEY }}
+          CONFIG_REPO_SSH: ${{ vars.CONFIG_REPO_SSH }}      # git@github.com:zhuravlenko2555dev/lms-k8s.git
+          CONFIG_REPO_SLUG: ${{ vars.CONFIG_REPO_SLUG }}    # zhuravlenko2555dev/lms-k8s
+          GH_TOKEN: ${{ secrets.CONFIG_REPO_TOKEN }}        # PR:write on the config repo only
+          IMAGE_TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          set -euo pipefail
+          keyfile="$(mktemp)"
+          printf '%s\n' "$CONFIG_REPO_DEPLOY_KEY" > "$keyfile"
+          chmod 600 "$keyfile"
+          export GIT_SSH_COMMAND="ssh -i $keyfile -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+          trap 'rm -f "$keyfile"' EXIT
+
+          workdir="$(mktemp -d)"
+          git clone "$CONFIG_REPO_SSH" "$workdir"
+          cd "$workdir"
+
+          branch="promote/prod-${IMAGE_TAG}"
+          git checkout -b "$branch"
+          yq -i ".image.tag = strenv(IMAGE_TAG)" envs/prod/values.yaml
+
+          git config user.name  "app-ci[bot]"
+          git config user.email "app-ci@users.noreply.github.com"
+          git add envs/prod/values.yaml
+          if git diff --cached --quiet; then
+            echo "prod already at ${IMAGE_TAG}; nothing to promote."
+            exit 0
+          fi
+          git commit -m "promote(prod): deploy image ${IMAGE_TAG}"
+          git push origin "$branch"
+
+          gh pr create \
+            --repo "$CONFIG_REPO_SLUG" \
+            --head "$branch" \
+            --base master \
+            --title "Promote to prod: ${IMAGE_TAG}" \
+            --body "Promote the tested dev image \`${IMAGE_TAG}\` to **prod**. No rebuild. Merging triggers an ArgoCD sync of the prod Application."
